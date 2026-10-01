@@ -35,7 +35,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from psycopg2.extras import Json
 
-from db import get_connection, init_db
+from db import get_connection, init_db, describe_db_problem
 from storage import upload_receipt
 
 # ── Setup ──────────────────────────────────────────────────────
@@ -55,14 +55,26 @@ _db_ready = False
 def ensure_database():
     """Create tables (and seed products) once per server instance."""
     global _db_ready
-    if _db_ready or request.path == '/health':
+    if _db_ready or request.path in ('/health', '/health/db'):
         return
     try:
         init_db()
         _db_ready = True
     except Exception as e:
-        app.logger.error(f"Database setup failed: {e}")
-        return jsonify({'error': 'The database is not reachable. Check DATABASE_URL.'}), 503
+        reason = describe_db_problem(e)
+        app.logger.error(f"Database setup failed: {reason}")
+        return jsonify({'error': 'The database is not reachable.', 'reason': reason}), 503
+
+
+@app.route('/health/db')
+def health_db():
+    """Check the database connection and explain any problem in plain language."""
+    try:
+        conn = get_connection()
+        conn.close()
+        return jsonify({'database': 'ok', 'detail': describe_db_problem()}), 200
+    except Exception as e:
+        return jsonify({'database': 'error', 'reason': describe_db_problem(e)}), 503
 
 OTP_MINUTES       = 10
 SESSION_HOURS     = 2
