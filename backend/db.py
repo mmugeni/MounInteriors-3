@@ -8,15 +8,70 @@ import psycopg2 # type: ignore
 from psycopg2.extras import RealDictCursor # pyright: ignore[reportMissingModuleSource]
 
 
+def database_url() -> str:
+    """
+    Read DATABASE_URL, forgiving the usual copy-paste extras from Neon's
+    Connect window: a leading `psql`, a `DATABASE_URL=` prefix, quotes,
+    spaces and line breaks.
+    """
+    raw = os.environ.get('DATABASE_URL', '')
+    url = ''.join(raw.split())                      # drop spaces / line breaks
+    for prefix in ('DATABASE_URL=', 'psql'):
+        if url.startswith(prefix):
+            url = url[len(prefix):]
+    url = url.strip('\'"')
+    if url.startswith('postgres://'):
+        url = 'postgresql://' + url[len('postgres://'):]
+    return url
+
+
+def describe_db_problem(err: Exception = None) -> str:
+    """A plain-language reason the database can't be used, with the password hidden."""
+    raw = os.environ.get('DATABASE_URL', '')
+    if not raw.strip():
+        return ('DATABASE_URL is not set for this deployment. Add it in Vercel → Settings → '
+                'Environment Variables (tick Production), then redeploy.')
+    url = database_url()
+    if not url.startswith('postgresql://'):
+        return ('DATABASE_URL does not look like a Neon connection string. It should start with '
+                f'postgresql:// but starts with "{url[:12]}".')
+    try:
+        from urllib.parse import urlparse
+        parts = urlparse(url)
+        host = parts.hostname or '(missing)'
+        password = parts.password or ''
+    except Exception:
+        host, password = '(unreadable)', ''
+    if err is None:
+        return f'DATABASE_URL looks fine (host {host}).'
+    msg = str(err).strip().splitlines()[0] if str(err).strip() else err.__class__.__name__
+    if password:
+        msg = msg.replace(password, '****')
+    hint = ''
+    low = msg.lower()
+    if 'password authentication failed' in low:
+        hint = ' The password in DATABASE_URL is wrong: copy the string again from Neon (Connect → copy).'
+    elif 'could not translate host name' in low or 'name or service not known' in low:
+        hint = ' The host name is wrong or the Neon project was deleted: copy the string again from Neon.'
+    elif 'does not exist' in low and 'database' in low:
+        hint = ' The database name at the end of the string is wrong: pick the right database in Neon\'s Connect window.'
+    elif 'timeout' in low or 'timed out' in low:
+        hint = ' Neon did not answer in time. Check the project is active in the Neon console, then reload.'
+    elif 'endpoint' in low and ('disabled' in low or 'not found' in low or 'suspend' in low):
+        hint = ' The Neon compute is disabled or missing. Open the project in the Neon console.'
+    return f'Could not use the database at {host}: {msg}.{hint}'
+
+
 def get_connection():
     """Return a new database connection using the DATABASE_URL env variable."""
     return psycopg2.connect(
-        os.environ['DATABASE_URL'],
-        cursor_factory=RealDictCursor
+        database_url(),
+        cursor_factory=RealDictCursor,
+        connect_timeout=10,
     )
 
 
-def init_db(retries: int = 5, delay: int = 3):
+def init_db(retries: int = 3, delay: int = 2):
     """
     Create the orders and order_items tables if they don't exist.
     Called once when the Flask app starts.
