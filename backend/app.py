@@ -79,6 +79,21 @@ def health_db():
 OTP_MINUTES       = 10
 SESSION_HOURS     = 2
 MAX_OTP_ATTEMPTS  = 5
+MAX_PASSWORD_FAILURES = 10   # wrong passwords allowed per connection...
+LOCKOUT_MINUTES       = 15   # ...within this many minutes
+
+
+def email_code_enabled() -> bool:
+    """
+    The emailed 6-digit code is off unless EMAIL_LOGIN_CODE is set to on/true/1.
+    While it is off, the admin password alone signs in.
+    """
+    return os.environ.get('EMAIL_LOGIN_CODE', '').strip().lower() in ('1', 'true', 'on', 'yes')
+
+
+def client_ip() -> str:
+    forwarded = request.headers.get('X-Forwarded-For', '')
+    return (forwarded.split(',')[0].strip() or request.remote_addr or 'unknown')[:64]
 
 
 # ── Email helper ───────────────────────────────────────────────
@@ -104,18 +119,47 @@ def smtp_send(sender: str, password: str, recipient: str, msg) -> None:
             server.login(sender, password)
         server.sendmail(sender, recipient, msg.as_string())
 
-def send_otp_email(otp_code: str) -> bool:
+def smtp_settings():
+    """Email settings, tidied: Gmail shows App Passwords with spaces, which must be removed."""
+    smtp_email    = os.environ.get('SMTP_EMAIL', '').strip()
+    smtp_password = ''.join(os.environ.get('SMTP_PASSWORD', '').split()).strip('\'"')
+    admin_email   = os.environ.get('ADMIN_EMAIL', '').strip() or smtp_email
+    return smtp_email, smtp_password, admin_email
+
+
+def describe_email_problem(err: Exception = None) -> str:
+    """A plain-language reason the login code email could not be sent."""
+    smtp_email, smtp_password, admin_email = smtp_settings()
+    missing = [k for k, v in (('SMTP_EMAIL', smtp_email), ('SMTP_PASSWORD', smtp_password)) if not v]
+    if missing:
+        return (f"{' and '.join(missing)} {'is' if len(missing) == 1 else 'are'} not set. Add "
+                f"{'it' if len(missing) == 1 else 'them'} in Vercel → Settings → Environment Variables, then redeploy.")
+    if err is None:
+        return ''
+    if isinstance(err, smtplib.SMTPAuthenticationError):
+        return (f'Gmail refused to sign in as {smtp_email}. SMTP_PASSWORD must be a 16-letter Gmail App Password '
+                f'created on that same account (Google Account → Security → 2-Step Verification → App passwords), '
+                f'not the normal Gmail password.')
+    if isinstance(err, smtplib.SMTPRecipientsRefused):
+        return f'Gmail would not deliver to ADMIN_EMAIL ({admin_email}). Check that address.'
+    if isinstance(err, smtplib.SMTPSenderRefused):
+        return f'Gmail would not send from SMTP_EMAIL ({smtp_email}). Check that address.'
+    if isinstance(err, (OSError, smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected)):
+        return f'Could not connect to the mail server: {err}. Try again in a minute.'
+    return f'Email failed: {err}'
+
+
+def send_otp_email(otp_code: str):
     """
     Send OTP to admin email using Gmail SMTP.
-    Set SMTP_EMAIL, SMTP_PASSWORD, and ADMIN_EMAIL in your .env file.
+    Returns None on success, or a plain-language reason on failure.
     """
-    smtp_email    = os.environ.get('SMTP_EMAIL', '')
-    smtp_password = os.environ.get('SMTP_PASSWORD', '')
-    admin_email   = os.environ.get('ADMIN_EMAIL', smtp_email)
+    smtp_email, smtp_password, admin_email = smtp_settings()
 
     if not smtp_email or not smtp_password:
-        app.logger.error("SMTP_EMAIL or SMTP_PASSWORD not set.")
-        return False
+        reason = describe_email_problem()
+        app.logger.error(reason)
+        return reason
 
     try:
         msg = MIMEMultipart('alternative')
@@ -165,11 +209,12 @@ Do not share this code with anyone.
         smtp_send(smtp_email, smtp_password, admin_email, msg)
 
         app.logger.info(f"OTP sent to {admin_email}")
-        return True
+        return None
 
     except Exception as e:
-        app.logger.error(f"Failed to send OTP: {e}")
-        return False
+        reason = describe_email_problem(e)
+        app.logger.error(f"Failed to send OTP: {reason}")
+        return reason
 
 
 def generate_otp() -> str:
@@ -227,15 +272,47 @@ def health():
 def send_otp():
     """
     Step 1 of admin login.
-    Verifies password then sends 6-digit OTP to admin email.
+    Verifies the password. If EMAIL_LOGIN_CODE is on, sends a 6-digit code to the
+    admin email; otherwise signs in straight away.
     Body: { "password": "your-admin-password" }
     """
     data           = request.get_json() or {}
     password       = data.get('password', '')
     admin_password = os.environ.get('ADMIN_PASSWORD', '')
+    ip             = client_ip()
 
-    if not admin_password or not hmac.compare_digest(str(password).encode(), admin_password.encode()):
-        return jsonify({'error': 'Incorrect password'}), 401
+    if not admin_password:
+        return jsonify({'error': 'ADMIN_PASSWORD is not set. Add it in Vercel → Settings → Environment Variables, then redeploy.'}), 500
+
+    conn = get_connection(); cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM admin_login_failures WHERE created_at < NOW() - INTERVAL '1 day'")
+        cur.execute(
+            "SELECT COUNT(*) AS n FROM admin_login_failures WHERE ip = %s AND created_at > NOW() - %s * INTERVAL '1 minute'",
+            (ip, LOCKOUT_MINUTES),
+        )
+        if cur.fetchone()['n'] >= MAX_PASSWORD_FAILURES:
+            conn.commit()
+            return jsonify({'error': f'Too many wrong passwords. Wait {LOCKOUT_MINUTES} minutes and try again.'}), 429
+
+        if not hmac.compare_digest(str(password).encode(), admin_password.encode()):
+            cur.execute("INSERT INTO admin_login_failures (ip) VALUES (%s)", (ip,))
+            conn.commit()
+            return jsonify({'error': 'Incorrect password'}), 401
+
+        cur.execute("DELETE FROM admin_login_failures WHERE ip = %s", (ip,))
+
+        if not email_code_enabled():
+            session_token = generate_session_token()
+            cur.execute(
+                "INSERT INTO admin_sessions (token, otp_hash, verified, expires_at) VALUES (%s, '', TRUE, %s)",
+                (session_token, datetime.now(timezone.utc) + timedelta(hours=SESSION_HOURS)),
+            )
+            conn.commit()
+            return jsonify({'success': True, 'session_token': session_token, 'message': 'Signed in.'}), 200
+        conn.commit()
+    finally:
+        cur.close(); conn.close()
 
     otp        = generate_otp()
     temp_token = generate_session_token()
@@ -250,14 +327,15 @@ def send_otp():
         )
         conn.commit()
 
-        if not send_otp_email(otp):
+        email_problem = send_otp_email(otp)
+        if email_problem:
             cur.execute("DELETE FROM admin_sessions WHERE token = %s", (temp_token,))
             conn.commit()
-            return jsonify({'error': 'Failed to send OTP email. Check SMTP settings in .env'}), 500
+            return jsonify({'error': f'Could not send the login code. {email_problem}'}), 500
     finally:
         cur.close(); conn.close()
 
-    admin_email = os.environ.get('ADMIN_EMAIL', os.environ.get('SMTP_EMAIL', ''))
+    admin_email = smtp_settings()[2]
     masked      = admin_email
     if '@' in admin_email:
         local, domain = admin_email.split('@', 1)
@@ -572,9 +650,7 @@ def create_quotation():
 
 
 def _send_quotation_email(quotation_id: int, data: dict):
-    smtp_email    = os.environ.get('SMTP_EMAIL', '')
-    smtp_password = os.environ.get('SMTP_PASSWORD', '')
-    admin_email   = os.environ.get('ADMIN_EMAIL', smtp_email)
+    smtp_email, smtp_password, admin_email = smtp_settings()
     if not smtp_email or not smtp_password:
         return
     try:
@@ -1290,6 +1366,7 @@ ADMIN_HTML = r"""
       });
       const data = await res.json();
       if (!res.ok) { showErr(errEl, data.error || 'Incorrect password.'); btn.disabled = false; btn.textContent = 'Continue →'; return; }
+      if (data.session_token) { enterDashboard(data.session_token); return; }
       TEMP_TOKEN = data.temp_token;
       document.getElementById('step-1').style.display = 'none';
       document.getElementById('step-2').style.display = 'block';
@@ -1319,12 +1396,16 @@ ADMIN_HTML = r"""
         document.getElementById('otp-input').focus();
         return;
       }
-      SESSION_TOKEN = data.session_token;
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('dashboard').style.display    = 'block';
-      loadOrders();
-      loadQuotations();  
+      enterDashboard(data.session_token);
     } catch { showErr(errEl, 'Network error.'); btn.disabled = false; btn.textContent = 'Verify & Enter Dashboard'; }
+  }
+
+  function enterDashboard(token) {
+    SESSION_TOKEN = token;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display    = 'block';
+    loadOrders();
+    loadQuotations();
   }
 
   async function resendOtp() {
