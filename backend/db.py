@@ -153,6 +153,14 @@ def init_db(retries: int = 3, delay: int = 2):
     """)
 
     cur.execute("""
+        CREATE TABLE IF NOT EXISTS admin_login_failures (
+            id          SERIAL PRIMARY KEY,
+            ip          VARCHAR(64)  NOT NULL,
+            created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+        );
+    """)
+
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS products (
             id              SERIAL PRIMARY KEY,
             name            VARCHAR(255) NOT NULL,
