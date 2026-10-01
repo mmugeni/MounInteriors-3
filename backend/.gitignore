@@ -1,0 +1,22 @@
+# Environment variables — never commit these
+.env
+_env
+*.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Receipts folder — local only
+receipts/
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store

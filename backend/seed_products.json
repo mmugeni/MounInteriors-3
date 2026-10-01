@@ -1,0 +1,301 @@
+[
+  {
+    "name": "Ceramic Planter",
+    "category": "planters",
+    "category_label": "Planters",
+    "badge": "New",
+    "price": null,
+    "image": "images/ceramic planter.JPG",
+    "description": "A beautifully hand-finished ceramic planter in warm terracotta tones. Perfect for succulents, small indoor plants, or as a standalone décor piece. Adds an earthy, calming touch to any shelf or windowsill.",
+    "sizes": [
+      {
+        "value": "Small",
+        "available": true
+      },
+      {
+        "value": "Medium",
+        "available": true
+      },
+      {
+        "value": "Large",
+        "available": false
+      }
+    ],
+    "prints": [
+      {
+        "name": "Terracotta",
+        "image": "images/ceramic planter.JPG",
+        "available": true
+      },
+      {
+        "name": "Sage Green",
+        "image": "images/sage green ceramic.JPG",
+        "available": true
+      },
+      {
+        "name": "Cream White",
+        "image": "images/cream white.JPG",
+        "available": true
+      }
+    ],
+    "visible": true,
+    "sort_order": 1
+  },
+  {
+    "name": "Scented Candle",
+    "category": "candles",
+    "category_label": "Candles",
+    "badge": "Bestseller",
+    "price": null,
+    "image": "images/candle5.jpeg",
+    "description": "Hand-poured soy wax candle with a warm, long-lasting scent. Burns cleanly for up to 40 hours. Available in multiple signature MOUN fragrances. Perfect for creating a calm, welcoming atmosphere in any room.",
+    "sizes": [
+      {
+        "value": "Standard",
+        "available": true
+      }
+    ],
+    "prints": [
+      {
+        "name": "Vanilla & Sandalwood",
+        "image": "images/candle4.jpeg",
+        "available": true
+      },
+      {
+        "name": "Morning Brew",
+        "image": "images/Morning brew candle .jpeg",
+        "available": true
+      },
+      {
+        "name": "Virunga Mountains",
+        "image": "images/Virunga Mountains candle.jpeg",
+        "available": true
+      },
+      {
+        "name": "Lemongrass Tea",
+        "image": "images/Lemongrass tea candle.jpeg",
+        "available": true
+      }
+    ],
+    "visible": true,
+    "sort_order": 2
+  },
+  {
+    "name": "Terracotta Vase",
+    "category": "vases",
+    "category_label": "Vases",
+    "badge": "Popular",
+    "price": null,
+    "image": "images/terracotta vase.JPG",
+    "description": "A statement terracotta vase inspired by traditional African pottery forms. Handcrafted with a matte finish that brings warmth and texture to any interior space. Use with dried botanicals or as a standalone sculptural piece.",
+    "sizes": [
+      {
+        "value": "Small",
+        "available": true
+      },
+      {
+        "value": "Medium",
+        "available": true
+      },
+      {
+        "value": "Tall",
+        "available": true
+      }
+    ],
+    "prints": [
+      {
+        "name": "Terracotta",
+        "image": "images/terracotta vase.JPG",
+        "available": true
+      },
+      {
+        "name": "Matte Black",
+        "image": "images/matte black terracotta.JPG",
+        "available": true
+      },
+      {
+        "name": "Sand Beige",
+        "image": "images/Sand Beige vase.jpg",
+        "available": true
+      }
+    ],
+    "visible": true,
+    "sort_order": 3
+  },
+  {
+    "name": "Woven Basket",
+    "category": "baskets",
+    "category_label": "Baskets",
+    "badge": "Handmade",
+    "price": null,
+    "image": "images/woven basket.WEBP",
+    "description": "Handwoven by local Rwandan artisans using traditional weaving techniques. This storage basket doubles as a beautiful décor piece — use it for blankets, plants, or as a statement accent in your living room.",
+    "sizes": [
+      {
+        "value": "Small",
+        "available": true
+      },
+      {
+        "value": "Medium",
+        "available": true
+      },
+      {
+        "value": "Large",
+        "available": false
+      }
+    ],
+    "prints": [
+      {
+        "name": "Natural Straw",
+        "image": "images/woven basket.WEBP",
+        "available": true
+      },
+      {
+        "name": "Black & Natural",
+        "image": "images/black and natural wooven basket.JPG",
+        "available": true
+      }
+    ],
+    "visible": true,
+    "sort_order": 4
+  },
+  {
+    "name": "Dried Botanical Bunch",
+    "category": "accessories",
+    "category_label": "Accessories",
+    "badge": "New",
+    "price": null,
+    "image": "images/neutral pampas.JPG",
+    "description": "A curated bunch of dried botanicals and pampas grass — zero maintenance, maximum impact. Pairs perfectly with our terracotta vases. Lasts for months with no watering required.",
+    "sizes": [
+      {
+        "value": "Standard",
+        "available": true
+      }
+    ],
+    "prints": [
+      {
+        "name": "Neutral Pampas",
+        "image": "images/neutral pampas.JPG",
+        "available": true
+      },
+      {
+        "name": "Russet & Brown",
+        "image": "images/russet brown.JPG",
+        "available": true
+      },
+      {
+        "name": "Ivory White",
+        "image": "images/ivory white.JPG",
+        "available": true
+      }
+    ],
+    "visible": true,
+    "sort_order": 5
+  },
+  {
+    "name": "Rattan Wall Mirror",
+    "category": "accessories",
+    "category_label": "Accessories",
+    "badge": "Limited",
+    "price": null,
+    "image": "images/natural rattan.JPG",
+    "description": "A circular wall mirror framed in hand-woven natural rattan. Adds depth, light, and a bohemian warmth to any wall. Available in two sizes. Each piece is slightly unique due to the handmade nature of the rattan frame.",
+    "sizes": [
+      {
+        "value": "40cm",
+        "available": true
+      },
+      {
+        "value": "60cm",
+        "available": true
+      }
+    ],
+    "prints": [
+      {
+        "name": "Natural Rattan",
+        "image": "images/natural rattan.JPG",
+        "available": true
+      },
+      {
+        "name": "Bleached White",
+        "image": "images/bleached white.JPG",
+        "available": false
+      }
+    ],
+    "visible": true,
+    "sort_order": 6
+  },
+  {
+    "name": "Linen Throw Cushion",
+    "category": "accessories",
+    "category_label": "Accessories",
+    "badge": "New",
+    "price": null,
+    "image": "images/sand beige.JPG",
+    "description": "A soft linen throw cushion in muted, earthy tones designed to complement any sofa or bed. Removable cover for easy washing. The subtle texture adds warmth without overpowering your existing décor.",
+    "sizes": [
+      {
+        "value": "40x40cm",
+        "available": true
+      },
+      {
+        "value": "50x50cm",
+        "available": true
+      }
+    ],
+    "prints": [
+      {
+        "name": "Sand Beige",
+        "image": "images/sand beige.JPG",
+        "available": true
+      },
+      {
+        "name": "Terracotta",
+        "image": "images/terracotta pillow.JPG",
+        "available": true
+      },
+      {
+        "name": "Sage Green",
+        "image": "images/sage green.JPG",
+        "available": true
+      },
+      {
+        "name": "Dusty Rose",
+        "image": "images/dusty rose.JPG",
+        "available": false
+      }
+    ],
+    "visible": true,
+    "sort_order": 7
+  },
+  {
+    "name": "Wooden Tray Set",
+    "category": "accessories",
+    "category_label": "Accessories",
+    "badge": "New",
+    "price": null,
+    "image": "images/light arcacia.JPG",
+    "description": "A set of two nesting wooden trays in smooth acacia wood. Use on your coffee table to style candles and botanicals, or on your dresser for jewellery and daily essentials. A simple way to instantly elevate any surface.",
+    "sizes": [
+      {
+        "value": "Set of 2",
+        "available": true
+      }
+    ],
+    "prints": [
+      {
+        "name": "Light Acacia",
+        "image": "images/light arcacia.JPG",
+        "available": true
+      },
+      {
+        "name": "Dark Walnut",
+        "image": "images/dark walnut.JPG",
+        "available": true
+      }
+    ],
+    "visible": true,
+    "sort_order": 8
+  }
+]

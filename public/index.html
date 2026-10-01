@@ -1,0 +1,1892 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOUN — Interior Design & Home Décor, Kigali</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- ============================================================
+       RR LANDING SCREEN
+    ============================================================ -->
+    <div class="rr-landing" id="rr-landing">
+      <!-- Looping video background — stays visible behind menu too -->
+      <video
+        class="rr-landing__video"
+        id="rr-video"
+        autoplay
+        muted
+        playsinline
+        loop
+        preload="auto"
+      >
+        <source src="images/intro.mp4" type="video/mp4" />
+      </video>
+
+      <!-- Overlays -->
+      <div class="rr-landing__warm"></div>
+      <div class="rr-landing__dark"></div>
+      <div class="rr-landing__vignette"></div>
+
+      <!-- MENU button top left -->
+      <button
+        class="rr-menu-btn"
+        id="rr-menu-btn"
+        type="button"
+        onclick="openRRMenu()"
+      >
+        <span class="rr-hamburger"
+          ><span></span><span></span><span></span
+        ></span>
+        <span class="rr-menu-label">Menu</span>
+      </button>
+
+      <!-- Centered content -->
+      <div class="rr-landing__content" id="rr-landing-content">
+        <p class="rr-landing__eyebrow">
+          Interior Design &amp; Home Décor · Kigali
+        </p>
+        <div class="rr-landing__logo">moun<span>.</span></div>
+        <div class="rr-landing__bar"></div>
+        <button
+          class="rr-landing__discover"
+          type="button"
+          onclick="enterSite()"
+        >
+          Discover Our Collection
+        </button>
+      </div>
+
+      <!-- ============================================================
+         RR MENU OVERLAY — slides in over the video
+      ============================================================ -->
+      <div class="rr-menu-overlay" id="rr-menu-overlay">
+        <!-- Left: blurred panel with nav links -->
+        <div class="rr-menu__panel">
+          <!-- Close -->
+          <button
+            class="rr-menu__close"
+            type="button"
+            onclick="closeRRMenu()"
+            style="position: fixed; top: 28px; left: 36px; z-index: 30"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              width="16"
+              height="16"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+            <span>Close</span>
+          </button>
+
+          <!-- Nav links -->
+          <nav class="rr-menu__nav">
+            <a
+              class="rr-menu__link"
+              href="javascript:void(0)"
+              onclick="closeRRMenu()"
+              >Home</a
+            >
+            <a
+              class="rr-menu__link"
+              href="javascript:void(0)"
+              onclick="
+                closeRRMenu();
+                enterSite();
+                setTimeout(() => showPage('shop'), 400);
+              "
+              >Shop</a
+            >
+            <a
+              class="rr-menu__link"
+              href="javascript:void(0)"
+              onclick="
+                closeRRMenu();
+                enterSite();
+                setTimeout(() => showPage('portfolio'), 400);
+              "
+              >Portfolio</a
+            >
+            <a
+              class="rr-menu__link"
+              href="javascript:void(0)"
+              onclick="
+                closeRRMenu();
+                enterSite();
+                setTimeout(() => showPage('about'), 400);
+              "
+              >About</a
+            >
+            <a
+              class="rr-menu__link"
+              href="javascript:void(0)"
+              onclick="
+                closeRRMenu();
+                enterSite();
+                setTimeout(() => showPage('contact'), 400);
+              "
+              >Contact</a
+            >
+          </nav>
+        </div>
+
+        <!-- Right: video keeps playing through — no panel, just transparent -->
+        <div
+          class="rr-menu__right-clear"
+          onclick="closeRRMenu()"
+          style="cursor: pointer"
+        ></div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+       MAIN SITE — shown after Discover is clicked
+    ============================================================ -->
+    <div class="rr-site" id="rr-site">
+      <!-- ============================================================
+       HEADER & NAV
+    ============================================================ -->
+      <header class="site-header" id="site-header">
+        <nav class="nav container">
+          <a
+            href="javascript:void(0)"
+            class="nav__logo"
+            onclick="showPage('home')"
+          >
+            <span class="logo-text"
+              >moun<span class="logo-accent">.</span></span
+            >
+          </a>
+
+          <ul class="nav__links" id="nav-links">
+            <li>
+              <a
+                href="javascript:void(0)"
+                class="nav__link active"
+                data-page="home"
+                onclick="showPage('home')"
+                >Home</a
+              >
+            </li>
+            <li>
+              <a
+                href="javascript:void(0)"
+                class="nav__link"
+                data-page="shop"
+                onclick="showPage('shop')"
+                >Shop</a
+              >
+            </li>
+            <li>
+              <a
+                href="javascript:void(0)"
+                class="nav__link"
+                data-page="portfolio"
+                onclick="showPage('portfolio')"
+                >Portfolio</a
+              >
+            </li>
+            <li>
+              <a
+                href="javascript:void(0)"
+                class="nav__link"
+                data-page="about"
+                onclick="showPage('about')"
+                >About</a
+              >
+            </li>
+            <li>
+              <a
+                href="javascript:void(0)"
+                class="nav__link"
+                data-page="contact"
+                onclick="showPage('contact')"
+                >Contact</a
+              >
+            </li>
+          </ul>
+
+          <div class="nav__actions">
+            <!-- Admin eye icon -->
+            <button
+              class="nav__admin-btn"
+              id="admin-btn"
+              aria-label="Admin login"
+              type="button"
+              title="Admin"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+
+            <button
+              class="nav__dark-toggle"
+              id="dark-toggle"
+              aria-label="Toggle dark mode"
+              type="button"
+            >
+              <svg
+                class="icon-moon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+              <svg
+                class="icon-sun"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            </button>
+
+            <button
+              class="nav__cart-btn"
+              id="cart-btn"
+              aria-label="Request a Quotation"
+              type="button"
+              title="Request a Quotation"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+            </button>
+
+            <button
+              class="nav__hamburger"
+              id="hamburger"
+              aria-label="Toggle menu"
+              type="button"
+            >
+              <span></span><span></span><span></span>
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      <!-- Quotation overlay & drawer -->
+      <div class="cart-overlay" id="cart-overlay"></div>
+      <aside
+        class="cart-drawer"
+        id="cart-drawer"
+        aria-label="Request a Quotation"
+      >
+        <div class="cart-drawer__header">
+          <h2 class="cart-drawer__title">Request a Quotation</h2>
+          <button
+            class="cart-drawer__close"
+            id="cart-close"
+            aria-label="Close quotation form"
+            type="button"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="cart-drawer__body quote-drawer__body">
+          <p class="quote-drawer__intro">
+            Tell us about your project and we'll get back to you with a tailored
+            proposal within 24 hours.
+          </p>
+          <div class="quote-form-wrap" id="quote-form-wrap">
+            <div class="form-group">
+              <label for="q-name"
+                >Full Name <span class="field-required">*</span></label
+              >
+              <input
+                type="text"
+                id="q-name"
+                placeholder="e.g. Amina Uwase"
+                autocomplete="name"
+              />
+            </div>
+            <div class="form-group">
+              <label for="q-email"
+                >Email Address <span class="field-required">*</span></label
+              >
+              <input
+                type="email"
+                id="q-email"
+                placeholder="you@example.com"
+                autocomplete="email"
+              />
+            </div>
+            <div class="form-group">
+              <label for="q-phone"
+                >Phone / WhatsApp <span class="field-required">*</span></label
+              >
+              <input
+                type="tel"
+                id="q-phone"
+                placeholder="+250 788 000 000"
+                autocomplete="tel"
+              />
+            </div>
+            <div class="form-group">
+              <label for="q-service"
+                >Service Needed <span class="field-required">*</span></label
+              >
+              <select id="q-service">
+                <option value="">— Select a service —</option>
+                <option value="Interior Design Consultation">
+                  Interior Design Consultation
+                </option>
+                <option value="3D Visualization">3D Visualization</option>
+                <option value="Full Room Redesign">Full Room Redesign</option>
+                <option value="Home Décor Sourcing">Home Décor Sourcing</option>
+                <option value="Office / Commercial Space">
+                  Office / Commercial Space
+                </option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="q-rooms">Room(s) Involved</label>
+              <input
+                type="text"
+                id="q-rooms"
+                placeholder="e.g. Living room, Master bedroom"
+              />
+            </div>
+            <div class="form-group">
+              <label for="q-budget">Approximate Budget (RWF)</label>
+              <select id="q-budget">
+                <option value="">— Select range —</option>
+                <option value="Under 100,000">Under 100,000</option>
+                <option value="100,000 – 300,000">100,000 – 300,000</option>
+                <option value="300,000 – 700,000">300,000 – 700,000</option>
+                <option value="700,000 – 1,500,000">700,000 – 1,500,000</option>
+                <option value="Above 1,500,000">Above 1,500,000</option>
+                <option value="Flexible / Not sure">Flexible / Not sure</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="q-timeline">Preferred Timeline</label>
+              <select id="q-timeline">
+                <option value="">— Select —</option>
+                <option value="ASAP (within 1 week)">
+                  ASAP (within 1 week)
+                </option>
+                <option value="Within 1 month">Within 1 month</option>
+                <option value="1–3 months">1–3 months</option>
+                <option value="Flexible">Flexible</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="q-details"
+                >Project Details <span class="field-required">*</span></label
+              >
+              <textarea
+                id="q-details"
+                rows="4"
+                placeholder="Describe your space, style preferences, and what you'd like to achieve…"
+              ></textarea>
+            </div>
+            <p class="quote-form__error" id="quote-form-error" hidden></p>
+            <button
+              type="button"
+              class="btn btn--primary btn--full"
+              id="quote-submit-btn"
+              onclick="submitQuotation()"
+            >
+              Send Quotation Request
+            </button>
+          </div>
+          <div class="quote-success" id="quote-success" hidden>
+            <div class="quote-success__icon">✓</div>
+            <h3>Request Sent!</h3>
+            <p>
+              Thank you! We've received your quotation request and will get back
+              to you within 24 hours.
+            </p>
+            <a
+              href="https://wa.me/23055198497?text=Hello%20MOUN%2C%20I%20just%20submitted%20a%20quotation%20request!"
+              class="btn btn--whatsapp btn--full"
+              target="_blank"
+              rel="noopener"
+              style="margin-top: 1rem"
+              >Follow up on WhatsApp</a
+            >
+            <button
+              type="button"
+              class="btn btn--ghost btn--full mt-sm"
+              onclick="
+                resetQuoteForm();
+                closeCart();
+              "
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============================================================
+       ADMIN LOGIN MODAL
+    ============================================================ -->
+      <div class="admin-modal-overlay" id="admin-modal-overlay" hidden>
+        <div class="admin-modal">
+          <button
+            class="admin-modal__close"
+            id="admin-modal-close"
+            type="button"
+          >
+            ✕
+          </button>
+          <div class="admin-modal__icon"><i class="fa-solid fa-eye"></i></div>
+          <h2 class="admin-modal__title">Admin Access</h2>
+          <p class="admin-modal__subtitle">Enter password to continue</p>
+          <div class="admin-modal__field">
+            <input
+              type="password"
+              id="admin-password-input"
+              placeholder="Enter admin password"
+              autocomplete="current-password"
+            />
+          </div>
+          <p class="admin-modal__error" id="admin-modal-error" hidden>
+            Incorrect password. Please try again.
+          </p>
+          <button
+            class="btn btn--primary btn--full"
+            id="admin-login-btn"
+            type="button"
+          >
+            Open Dashboard
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================================
+       PAGE: HOME
+    ============================================================ -->
+      <main id="page-home" class="page active">
+        <!-- Categories / Services -->
+        <section class="categories section">
+          <div class="container">
+            <h2 class="section-title">What We Offer</h2>
+            <div class="categories__grid">
+              <article class="category-card" onclick="showPage('shop')">
+                <div
+                  class="category-card__img"
+                  style="
+                    background-image: url(&quot;images/digitalcraft.jpeg&quot;);
+                  "
+                ></div>
+                <div class="category-card__body">
+                  <h3>Home Décor</h3>
+                  <span class="category-card__cta">Shop now →</span>
+                </div>
+              </article>
+
+              <article class="category-card" onclick="showPage('portfolio')">
+  <div class="category-card__img">
+    <video autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;">
+      <source src="images/3D Renovation service.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="category-card__body">
+    <h3>3D Visualization</h3>
+    <span class="category-card__cta">See portfolio →</span>
+  </div>
+</article>
+
+              <article class="category-card" onclick="showPage('portfolio')">
+                <div
+                  class="category-card__img"
+                  style="
+                    background-image: url(&quot;images/living room.JPG&quot;);
+                  "
+                ></div>
+                <div class="category-card__body">
+                  <h3>Living Room Design</h3>
+                  <span class="category-card__cta">Explore →</span>
+                </div>
+              </article>
+
+              <article class="category-card" onclick="showPage('portfolio')">
+                <div
+                  class="category-card__img"
+                  style="background-image: url(&quot;images/bedroom.JPG&quot;)"
+                ></div>
+                <div class="category-card__body">
+                  <h3>Bedroom Design</h3>
+                  <span class="category-card__cta">Explore →</span>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- Featured Products -->
+        <section class="featured section section--cream">
+          <div class="container">
+            <div class="section-header">
+              <h2 class="section-title">Featured Products</h2>
+              <button
+                class="btn btn--text"
+                onclick="showPage('shop')"
+                type="button"
+              >
+                View all →
+              </button>
+            </div>
+            <div class="products-grid" id="featured-products"></div>
+          </div>
+        </section>
+
+        <!-- Brand Story / Value Prop -->
+        <section class="campus section">
+          <div class="container campus__inner">
+            <div class="campus__text">
+              <p class="campus__eyebrow">Why MOUN?</p>
+              <h2 class="campus__title">
+                See your space<br />before you commit.
+              </h2>
+              <p class="campus__body">
+                MOUN was built for homeowners and renters in Kigali who want
+                beautiful, personalized interiors without the guesswork. Our 3D
+                visualization service lets you preview exactly how your space
+                will look — before spending a single franc on furniture or
+                renovation.
+              </p>
+              <button
+                class="btn btn--primary"
+                onclick="showPage('portfolio')"
+                type="button"
+              >
+                View Portfolio
+              </button>
+            </div>
+            <div
+              class="campus__image"
+              style="background-image: url(&quot;images/mouninterior.PNG&quot;)"
+            ></div>
+          </div>
+        </section>
+
+        <!-- Brand Statement -->
+        <section class="brand-story section section--dark">
+          <div class="container brand-story__inner">
+            <p class="brand-story__quote">
+              "Your home should tell your story."
+            </p>
+            <p class="brand-story__body">
+              Born in Kigali, inspired by African design traditions and
+              contemporary global aesthetics. MOUN curates home décor products
+              and interior design services that bring warmth, culture, and
+              personality to every space — from a single room to an entire home.
+            </p>
+            <button
+              class="btn btn--outline"
+              onclick="
+                showPage('about');
+                setTimeout(() => {
+                  const el = document.querySelector('.testimonials-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+              "
+              type="button"
+            >
+              Our Reviews
+            </button>
+          </div>
+        </section>
+
+        <!-- WhatsApp FAB -->
+        <a
+          class="whatsapp-fab"
+          href="https://wa.me/250700000000?text=Hello%20MOUN%2C%20I%27d%20like%20to%20enquire!"
+          target="_blank"
+          rel="noopener"
+          aria-label="Chat on WhatsApp"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"
+            />
+          </svg>
+        </a>
+      </main>
+
+      <!-- ============================================================
+       PAGE: SHOP
+    ============================================================ -->
+      <main id="page-shop" class="page">
+        <section class="page-hero section--sm">
+          <div class="container">
+            <h1 class="page-hero__title">Shop Our Collection</h1>
+            <p class="page-hero__sub">
+              Handpicked home décor pieces for your Kigali space.
+            </p>
+          </div>
+        </section>
+        <section class="shop-grid section">
+          <div class="container">
+            <div class="shop-filters">
+              <button class="filter-btn active" data-filter="all" type="button">
+                All
+              </button>
+              <button class="filter-btn" data-filter="planters" type="button">
+                Planters
+              </button>
+              <button class="filter-btn" data-filter="candles" type="button">
+                Candles
+              </button>
+              <button class="filter-btn" data-filter="vases" type="button">
+                Vases
+              </button>
+              <button class="filter-btn" data-filter="baskets" type="button">
+                Baskets
+              </button>
+              <button
+                class="filter-btn"
+                data-filter="accessories"
+                type="button"
+              >
+                Accessories
+              </button>
+            </div>
+            <div class="products-grid" id="shop-products"></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============================================================
+       PAGE: PRODUCT DETAIL
+    ============================================================ -->
+      <main id="page-product" class="page">
+        <section class="product-detail section">
+          <div class="container product-detail__inner">
+            <div class="product-detail__thumbs" id="product-thumbs"></div>
+            <div class="product-detail__gallery">
+              <img
+                id="product-main-img"
+                src=""
+                alt="Product image"
+                class="product-detail__main-img"
+              />
+            </div>
+            <div class="product-detail__info">
+              <p class="product-detail__category" id="product-category"></p>
+              <h1 class="product-detail__name" id="product-name"></h1>
+              <p class="product-detail__price" id="product-price" hidden></p>
+              <div
+                class="product-detail__availability"
+                id="product-availability"
+              >
+                <span class="avail-dot"></span>
+                <span id="avail-text">Available</span>
+              </div>
+              <p class="product-detail__desc" id="product-desc"></p>
+
+              <div
+                class="product-detail__option-group"
+                id="print-selector-group"
+                hidden
+              >
+                <p class="option-label">
+                  Select Variant
+                  <span
+                    class="option-selected-label"
+                    id="selected-print-label"
+                  ></span>
+                </p>
+                <div class="print-options" id="print-options"></div>
+                <p class="out-of-stock-msg" id="print-oos-msg" hidden>
+                  This variant is out of stock.
+                </p>
+              </div>
+
+              <div
+                class="product-detail__option-group"
+                id="size-selector-group"
+                hidden
+              >
+                <p class="option-label">
+                  Select Size
+                  <span
+                    class="option-selected-label"
+                    id="selected-size-label"
+                  ></span>
+                </p>
+                <div class="size-options" id="size-options"></div>
+                <p class="out-of-stock-msg" id="size-oos-msg" hidden>
+                  This size is out of stock.
+                </p>
+              </div>
+
+              <div class="product-detail__option-group">
+                <p class="option-label">Quantity</p>
+                <div class="quantity-control">
+                  <button type="button" class="qty-ctrl-btn" id="qty-decrease">
+                    −
+                  </button>
+                  <span class="qty-ctrl-value" id="qty-display">1</span>
+                  <button type="button" class="qty-ctrl-btn" id="qty-increase">
+                    +
+                  </button>
+                </div>
+                <p class="qty-max-note">Maximum 2 per item</p>
+              </div>
+
+              <button
+                id="add-to-cart-btn"
+                class="btn btn--primary btn--full"
+                type="button"
+              >
+                Request a Quotation
+              </button>
+              <a
+                id="whatsapp-order-btn"
+                href="#"
+                class="btn btn--ghost btn--full mt-sm"
+                style="
+                  color: var(--clr-accent);
+                  border-color: var(--clr-accent);
+                "
+                target="_blank"
+                rel="noopener"
+              >
+                Order on WhatsApp
+              </a>
+
+              <div class="product-share">
+                <p class="product-share__label">Share this product</p>
+                <div class="product-share__btns">
+                  <a
+                    id="share-whatsapp"
+                    class="share-btn share-btn--wa"
+                    href="#"
+                    target="_blank"
+                    rel="noopener"
+                    aria-label="Share on WhatsApp"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    id="share-instagram"
+                    class="share-btn share-btn--ig"
+                    href="https://www.instagram.com/moun.rw"
+                    target="_blank"
+                    rel="noopener"
+                    aria-label="Open Instagram"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5zm8.9 1.35a1.05 1.05 0 1 1 0 2.1 1.05 1.05 0 0 1 0-2.1zM12 6.85A5.15 5.15 0 1 1 6.85 12 5.16 5.16 0 0 1 12 6.85zm0 1.8A3.35 3.35 0 1 0 15.35 12 3.35 3.35 0 0 0 12 8.65z"
+                      />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+
+              <button
+                class="btn btn--ghost btn--full mt-sm"
+                onclick="showPage('shop')"
+                type="button"
+              >
+                ← Back to Shop
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============================================================
+       PAGE: CHECKOUT
+    ============================================================ -->
+      <main id="page-checkout" class="page">
+        <section class="checkout-section section">
+          <div class="container">
+            <h1 class="checkout__title">Checkout</h1>
+            <div class="checkout__layout">
+              <!-- LEFT: Shipping & Payment -->
+              <div class="checkout__left">
+                <!-- Step 1: Shipping Method -->
+                <div class="checkout-card" id="co-method-card">
+                  <h2 class="checkout-card__title">Delivery Method</h2>
+
+                  <label class="co-method-row" id="co-pickup-row">
+                    <input
+                      type="radio"
+                      name="co-method"
+                      value="pickup"
+                      id="co-pickup-radio"
+                    />
+                    <div class="co-method-row__info">
+                      <span class="co-method-row__name"
+                        ><i class="fa-solid fa-shop"></i> Pickup</span
+                      >
+                      <span class="co-method-row__detail"
+                        >MOUN Studio, Kigali</span
+                      >
+                    </div>
+                    <span class="co-method-row__price">Free</span>
+                  </label>
+
+                  <label class="co-method-row" id="co-delivery-row">
+                    <input
+                      type="radio"
+                      name="co-method"
+                      value="delivery"
+                      id="co-delivery-radio"
+                    />
+                    <div class="co-method-row__info">
+                      <span class="co-method-row__name"
+                        ><i class="fa-solid fa-truck"></i> Delivery</span
+                      >
+                      <span class="co-method-row__detail"
+                        >Select your area below</span
+                      >
+                    </div>
+                  </label>
+
+                  <div id="co-delivery-areas" hidden>
+                    <p class="co-area-label">Select your delivery zone:</p>
+                    <div class="co-area-list">
+                      <label class="co-area-row"
+                        ><input
+                          type="radio"
+                          name="co-area"
+                          value="Nyarugenge"
+                          data-price="1000"
+                        /><span>Nyarugenge</span
+                        ><span class="co-area-price">RWF 1,000</span></label
+                      >
+                      <label class="co-area-row"
+                        ><input
+                          type="radio"
+                          name="co-area"
+                          value="Kimironko"
+                          data-price="1500"
+                        /><span>Kimironko</span
+                        ><span class="co-area-price">RWF 1,500</span></label
+                      >
+                      <label class="co-area-row"
+                        ><input
+                          type="radio"
+                          name="co-area"
+                          value="Remera"
+                          data-price="1500"
+                        /><span>Remera</span
+                        ><span class="co-area-price">RWF 1,500</span></label
+                      >
+                      <label class="co-area-row"
+                        ><input
+                          type="radio"
+                          name="co-area"
+                          value="Kicukiro"
+                          data-price="2000"
+                        /><span>Kicukiro</span
+                        ><span class="co-area-price">RWF 2,000</span></label
+                      >
+                      <label class="co-area-row"
+                        ><input
+                          type="radio"
+                          name="co-area"
+                          value="Gasabo"
+                          data-price="2000"
+                        /><span>Gasabo</span
+                        ><span class="co-area-price">RWF 2,000</span></label
+                      >
+                      <label class="co-area-row"
+                        ><input
+                          type="radio"
+                          name="co-area"
+                          value="Kibagabaga"
+                          data-price="2500"
+                        /><span>Kibagabaga</span
+                        ><span class="co-area-price">RWF 2,500</span></label
+                      >
+                    </div>
+                  </div>
+
+                  <p class="co-error" id="co-method-error" hidden>
+                    Please select a delivery method before continuing.
+                  </p>
+                </div>
+
+                <!-- Step 2: Customer Details -->
+                <div class="checkout-card" id="co-customer-card" hidden>
+                  <h2 class="checkout-card__title">Your Details</h2>
+                  <div class="form-group">
+                    <label for="co-fullname">Full Name</label>
+                    <input
+                      type="text"
+                      id="co-fullname"
+                      name="co-fullname"
+                      placeholder="e.g. Amina Uwase"
+                      autocomplete="name"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="co-phone">Phone Number</label>
+                    <input
+                      type="tel"
+                      id="co-phone"
+                      name="co-phone"
+                      placeholder="e.g. +250 788 123 456"
+                      autocomplete="tel"
+                    />
+                  </div>
+                  <div id="co-delivery-fields" hidden>
+                    <div class="form-group">
+                      <label for="co-delivery-address">Delivery Address</label>
+                      <input
+                        type="text"
+                        id="co-delivery-address"
+                        name="co-delivery-address"
+                        placeholder="Street, sector, district…"
+                        autocomplete="street-address"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="co-delivery-note"
+                        >Delivery Note
+                        <span class="field-optional">(optional)</span></label
+                      >
+                      <textarea
+                        id="co-delivery-note"
+                        name="co-delivery-note"
+                        rows="3"
+                        placeholder="Any special instructions for the delivery rider…"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <p class="co-error" id="co-customer-error" hidden>
+                    Please fill in all required fields.
+                  </p>
+                </div>
+
+                <!-- Step 3: Payment -->
+                <div class="checkout-card" id="co-payment-card">
+                  <h2 class="checkout-card__title">Payment Method</h2>
+                  <button
+                    type="button"
+                    class="co-merchant-btn"
+                    id="co-merchant-btn"
+                  >
+                    <i class="fa-solid fa-building-columns"></i> Bank Transfer
+                    (Merchant Account)
+                  </button>
+                  <div class="co-bank-details" id="co-bank-details" hidden>
+                    <p class="co-bank-details__intro">
+                      Transfer your payment to the account below and upload your
+                      proof of payment:
+                    </p>
+                    <div class="co-bank-info">
+                      <p>
+                        <strong>Account Name:</strong>
+                        <span>MOULAIKA MUGENI</span>
+                      </p>
+                      <p>
+                        <strong>Account No.:</strong> <span>000123456789</span>
+                      </p>
+                      <p>
+                        <strong>Bank Name:</strong> <span>Bank of Kigali</span>
+                      </p>
+                    </div>
+                    <p class="co-bank-warning">
+                      <i class="fa-solid fa-triangle-exclamation"></i> Payment
+                      is not confirmed automatically — the MOUN team will verify
+                      your receipt manually.
+                    </p>
+                    <label class="co-upload-label" for="co-receipt-input">
+                      <span class="co-upload-label__icon"
+                        ><i class="fa-solid fa-paperclip"></i
+                      ></span>
+                      <span id="co-upload-text"
+                        >Click here to upload payment receipt</span
+                      >
+                      <input
+                        type="file"
+                        id="co-receipt-input"
+                        accept="image/*,application/pdf"
+                        hidden
+                      />
+                    </label>
+                    <p class="co-upload-success" id="co-upload-success" hidden>
+                      ✓ Receipt attached: <span id="co-upload-filename"></span>
+                    </p>
+                    <button
+                      type="button"
+                      class="btn btn--whatsapp btn--full co-confirm-btn"
+                      id="co-confirm-btn"
+                      disabled
+                    >
+                      I've Made Payment — Send Order via WhatsApp
+                    </button>
+                    <p class="co-confirm-note">
+                      You must upload your receipt before confirming.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT: Order Summary -->
+              <div class="checkout__right">
+                <div class="checkout-card">
+                  <h2 class="checkout-card__title">Your Order</h2>
+                  <div id="co-order-items"></div>
+                  <div class="co-summary-rows">
+                    <div class="co-summary-row">
+                      <span>Subtotal</span><span id="co-subtotal">RWF 0</span>
+                    </div>
+                    <div class="co-summary-row">
+                      <span>Delivery</span
+                      ><span id="co-shipping-display">—</span>
+                    </div>
+                    <div class="co-summary-row co-summary-row--total">
+                      <span>Total</span><span id="co-total">RWF 0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn--ghost mt-sm"
+              onclick="showPage('shop')"
+              style="
+                color: var(--clr-text-muted);
+                border-color: var(--clr-text-muted);
+              "
+            >
+              ← Back to Shop
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============================================================
+       PAGE: PORTFOLIO
+    ============================================================ -->
+      <main id="page-portfolio" class="page">
+        <section class="pf-hero">
+          <div class="pf-hero__inner container">
+            <h1 class="pf-hero__title">Our Portfolio</h1>
+            <p class="pf-hero__sub">
+              Explore our collection of interior designs, 3D visualizations, and
+              completed home transformations for clients in Kigali.
+            </p>
+          </div>
+        </section>
+
+        <section class="pf-grid-section">
+          <div class="container">
+            <div class="pf-filters" id="pf-filters">
+              <button class="pf-filter active" data-filter="all">
+                All (12)
+              </button>
+              <button class="pf-filter" data-filter="living">
+                Living Room (4)
+              </button>
+              <button class="pf-filter" data-filter="bedroom">
+                Bedroom (3)
+              </button>
+              <button class="pf-filter" data-filter="office">
+                Home Office (2)
+              </button>
+              <button class="pf-filter" data-filter="dining">
+                Dining Room (2)
+              </button>
+              <button class="pf-filter" data-filter="3d">
+                3D Visualization (1)
+              </button>
+            </div>
+            <p class="pf-showing" id="pf-showing">Showing 12 of 12</p>
+            <div class="pf-grid" id="pf-grid">
+              <article
+                class="pf-card"
+                data-category="living"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/warm living room.jpg&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Living Room</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">
+                    Warm Living Room Transformation
+                  </h3>
+                  <p class="pf-card__meta">Kimironko, Kigali · 2024</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="bedroom"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/master bedroom.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Bedroom</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Master Bedroom Redesign</h3>
+                  <p class="pf-card__meta">Remera, Kigali · 2024</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="3d"
+                onclick="openPfModal(this)"
+              >
+                <div class="pf-card__img" style="position:relative;overflow:hidden;">
+  <video autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="images/3d vis3.mp4" type="video/mp4" />
+  </video>
+  <div class="pf-card__overlay">
+    <span class="pf-card__zoom">&#128269;</span>
+  </div>
+  <span class="pf-card__badge">3D Visualization</span>
+</div>
+<div class="pf-card__body">
+  <h3 class="pf-card__title">3D Studio Apartment Concept</h3>
+  <p class="pf-card__meta">Kimironko, Kigali · 2025</p>
+</div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="office"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/productive.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Home Office</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Productive Home Office Setup</h3>
+                  <p class="pf-card__meta">Gasabo, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="living"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/earthy minimalist.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Living Room</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Earthy Minimalist Lounge</h3>
+                  <p class="pf-card__meta">Nyarugenge, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="dining"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/dining room.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Dining Room</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Dining Room Refresh</h3>
+                  <p class="pf-card__meta">Kicukiro, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="bedroom"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/guest bedroom.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Bedroom</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Serene Guest Bedroom</h3>
+                  <p class="pf-card__meta">Remera, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="living"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/open plan.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Living Room</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Open Plan Living Area</h3>
+                  <p class="pf-card__meta">Kibagabaga, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="office"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="background-image: url(&quot;images/creative.JPG&quot;)"
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Home Office</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Creative Studio Corner</h3>
+                  <p class="pf-card__meta">Gasabo, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="dining"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="background-image: url(&quot;images/family.JPG&quot;)"
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Dining Room</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Family Dining Space</h3>
+                  <p class="pf-card__meta">Nyarugenge, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="living"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/contemporary.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Living Room</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Contemporary Living Room</h3>
+                  <p class="pf-card__meta">Kicukiro, Kigali · 2025</p>
+                </div>
+              </article>
+              <article
+                class="pf-card"
+                data-category="bedroom"
+                onclick="openPfModal(this)"
+              >
+                <div
+                  class="pf-card__img"
+                  style="
+                    background-image: url(&quot;images/kids bedroom.JPG&quot;);
+                  "
+                >
+                  <div class="pf-card__overlay">
+                    <span class="pf-card__zoom">&#128269;</span>
+                  </div>
+                  <span class="pf-card__badge">Bedroom</span>
+                </div>
+                <div class="pf-card__body">
+                  <h3 class="pf-card__title">Kids Bedroom Design</h3>
+                  <p class="pf-card__meta">Kimironko, Kigali · 2025</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <div
+          class="pf-modal-overlay"
+          id="pf-modal-overlay"
+          onclick="closePfModal()"
+        >
+          <div class="pf-modal" onclick="event.stopPropagation()">
+            <button class="pf-modal__close" onclick="closePfModal()">
+              &#10005;
+            </button>
+            <div class="pf-modal__img" id="pf-modal-img"></div>
+            <div class="pf-modal__info">
+              <span class="pf-modal__badge" id="pf-modal-badge"></span>
+              <h2 class="pf-modal__title" id="pf-modal-title"></h2>
+              <p class="pf-modal__meta" id="pf-modal-meta"></p>
+              <a
+                href="https://wa.me/250700000000?text=Hello%20MOUN%2C%20I%27d%20like%20a%20similar%20design!"
+                class="btn btn--primary"
+                target="_blank"
+                rel="noopener"
+                style="margin-top: 12px; display: inline-block"
+              >
+                Request similar design
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <section class="pf-cta">
+          <div class="pf-cta__inner container">
+            <h2 class="pf-cta__title">Like what you see?</h2>
+            <p class="pf-cta__sub">
+              Get in touch to discuss your next project.
+            </p>
+            <a
+              href="https://wa.me/250700000000?text=Hello%20MOUN%2C%20I%27d%20like%20to%20start%20a%20project!"
+              class="pf-cta__btn"
+              target="_blank"
+              rel="noopener"
+              >Start Your Project</a
+            >
+          </div>
+        </section>
+      </main>
+
+      <!-- ============================================================
+       PAGE: ABOUT
+    ============================================================ -->
+      <main id="page-about" class="page">
+        <section class="about-hero">
+          <div
+            class="about-hero__bg"
+            style="background-image: url(&quot;images/homedecor1.JPG&quot;)"
+          ></div>
+          <div class="about-hero__overlay"></div>
+          <div class="about-hero__content container">
+            <h1>We are <em>MOUN.</em></h1>
+            <p>
+              Culturally inspired interiors. Modern expression. Made in Kigali.
+            </p>
+          </div>
+        </section>
+
+        <section class="about-story section">
+          <div class="container about-story__inner">
+            <div class="about-story__text">
+              <h2>Our Story</h2>
+              <p>
+               At MOUN, we believe that spaces and objects should feel
+               intentional, personal, and inspiring. Founded by two sisters 
+               with a shared passion for creativity, storytelling, and thoughtful 
+               design, MOUN was created as a brand that blends art, atmosphere, and 
+               everyday living.
+              </p>
+              <p>
+                Combining backgrounds in architecture, design, and marketing, 
+                the brand began as a candle business and gradually evolved into 
+                a broader lifestyle and creative studio. What started with 
+                handcrafted candles has grown into a collection of digital crafts, 
+                home décor pieces, and interior design concepts that celebrate 
+                simplicity, warmth, and identity.
+              </p>
+              <p>
+                Inspired by Rwanda’s landscapes, culture, and contemporary creativity, 
+                MOUN explores the relationship between design, atmosphere, and everyday 
+                experiences. From laser-engraved wooden pieces to carefully curated 
+                interior ideas, each creation is designed to bring character and meaning 
+                into homes and spaces.
+              </p>
+              <p>
+                At its core, MOUN is about creating products and experiences that feel 
+                timeless, intentional, and uniquely personal.
+              </p>
+            </div>
+            <div
+              class="about-story__image"
+              style="background-image: url(&quot;images/our story.JPG&quot;)"
+            ></div>
+          </div>
+        </section>
+
+        <!-- OUR PROCESS -->
+        <section class="process-section section">
+          <div class="container">
+            <div class="process-header">
+              <h2 class="process-title">Our Process</h2>
+              <div class="process-divider"></div>
+              <p class="process-sub">
+                A simple workflow designed to bring your vision to life — with
+                clarity and confidence at every step.
+              </p>
+            </div>
+            <div class="process-list">
+              <div class="process-step">
+                <div class="process-step__num">01</div>
+                <div class="process-step__content">
+                  <h3 class="process-step__title">Consultation</h3>
+                  <p class="process-step__desc">
+                    We start with a conversation — in person or on WhatsApp — to
+                    understand your space, your taste, and your budget. No
+                    pressure, no commitment required.
+                  </p>
+                </div>
+              </div>
+
+              <div class="process-step">
+                <div class="process-step__num">02</div>
+                <div class="process-step__content">
+                  <h3 class="process-step__title">Space Assessment</h3>
+                  <p class="process-step__desc">
+                    You send us photos and measurements of your room. We review
+                    everything and put together a design brief that captures
+                    exactly what you are looking for.
+                  </p>
+                </div>
+              </div>
+
+              <div class="process-step">
+                <div class="process-step__num">03</div>
+                <div class="process-step__content">
+                  <h3 class="process-step__title">3D Visualization</h3>
+                  <p class="process-step__desc">
+                    Our team builds a photorealistic 3D render of your space
+                    using professional design tools. You see exactly how your
+                    room will look — before anything is purchased or changed.
+                  </p>
+                </div>
+              </div>
+
+              <div class="process-step">
+                <div class="process-step__num">04</div>
+                <div class="process-step__content">
+                  <h3 class="process-step__title">Review & Revisions</h3>
+                  <p class="process-step__desc">
+                    You review the 3D design and request any changes — different
+                    colours, furniture layout, décor pieces. We refine until the
+                    design feels exactly right.
+                  </p>
+                </div>
+              </div>
+
+              <div class="process-step">
+                <div class="process-step__num">05</div>
+                <div class="process-step__content">
+                  <h3 class="process-step__title">Shop & Transform</h3>
+                  <p class="process-step__desc">
+                    Once the design is approved, order the exact décor pieces
+                    from our shop. We deliver to your door across Kigali and
+                    your space transforms exactly as visualized.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CLIENT TESTIMONIALS -->
+        <section class="testimonials-section">
+          <div class="container">
+            <div class="process-header">
+              <h2 class="process-title">Client Testimonials</h2>
+              <div class="process-divider"></div>
+            </div>
+            <div class="testimonials-grid">
+              <div class="testi-card testi-card--featured">
+                <div class="testi-stars">★★★★★</div>
+                <span class="testi-quote-icon">"</span>
+                <p class="testi-text">
+                  "MOUN completely transformed how I see my apartment. I sent
+                  photos of my empty living room and within 48 hours I had a
+                  full 3D render showing exactly what it could look like. I
+                  ordered the pieces and my space looks exactly like the design.
+                  Absolutely worth every franc."
+                </p>
+                <div class="testi-author">
+                  <strong>Amina U.</strong>
+                  <span>Homeowner · Kimironko, Kigali</span>
+                </div>
+              </div>
+
+              <div class="testi-card">
+                <div class="testi-stars">★★★★★</div>
+                <span class="testi-quote-icon">"</span>
+                <p class="testi-text">
+                  "I was redoing my bedroom and had no idea where to start. MOUN
+                  gave me a 3D visualization that made the decision so easy. The
+                  terracotta vase and linen cushions they recommended are
+                  perfect."
+                </p>
+                <div class="testi-author">
+                  <strong>Jean Paul N.</strong>
+                  <span>Homeowner · Remera, Kigali</span>
+                </div>
+              </div>
+
+              <div class="testi-card">
+                <div class="testi-stars">★★★★★</div>
+                <span class="testi-quote-icon">"</span>
+                <p class="testi-text">
+                  "The checkout process was simple — I uploaded my bank receipt
+                  and my order was confirmed on WhatsApp within the hour. The
+                  delivery was on time and the products are high quality. I will
+                  be ordering again."
+                </p>
+                <div class="testi-author">
+                  <strong>Claire M.</strong>
+                  <span>Interior enthusiast · Gasabo, Kigali</span>
+                </div>
+              </div>
+
+              <div class="testi-card">
+                <div class="testi-stars">★★★★☆</div>
+                <span class="testi-quote-icon">"</span>
+                <p class="testi-text">
+                  "Really impressed by the level of detail in the 3D render.
+                  MOUN understood the African aesthetic I was going for — warm
+                  tones, natural materials, nothing too Western. My home finally
+                  feels like me."
+                </p>
+                <div class="testi-author">
+                  <strong>Diane K.</strong>
+                  <span>Homeowner · Nyarugenge, Kigali</span>
+                </div>
+              </div>
+
+              <div class="testi-card">
+                <div class="testi-stars">★★★★★</div>
+                <span class="testi-quote-icon">"</span>
+                <p class="testi-text">
+                  "I set up a home office using MOUN's visualization service and
+                  the woven basket and wooden tray set they recommended made the
+                  space feel put together without breaking the bank. Great
+                  value."
+                </p>
+                <div class="testi-author">
+                  <strong>Eric H.</strong>
+                  <span>Entrepreneur · Kicukiro, Kigali</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HAVE A PROJECT IN MIND? -->
+        <section class="project-cta">
+          <div class="project-cta__inner container">
+            <div class="project-cta__line"></div>
+            <h2 class="project-cta__title">Have a project in mind?</h2>
+            <p class="project-cta__sub">
+              Tell us about your space. We will put together a design and
+              pricing proposal within 24 hours.
+            </p>
+            <a
+              href="https://wa.me/250700000000?text=Hello%20MOUN%2C%20I%20have%20a%20project%20in%20mind!"
+              class="project-cta__btn"
+              target="_blank"
+              rel="noopener"
+            >
+              Start Your Project
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============================================================
+       PAGE: CONTACT
+    ============================================================ -->
+      <main id="page-contact" class="page">
+        <section class="contact-hero section--sm">
+          <div class="container">
+            <h1 class="page-hero__title">Get in Touch</h1>
+            <p class="page-hero__sub">
+              Ready to start your project? Kindly fill out the form and we'll
+              get back to you within 24 hours.
+            </p>
+          </div>
+        </section>
+
+        <section class="contact-body section">
+          <div class="container contact-body__inner">
+            <div class="contact-form-wrap">
+              <h2>Send a Message</h2>
+              <form class="contact-form" id="contact-form" novalidate>
+                <div class="form-group">
+                  <label for="c-name">Your Name</label>
+                  <input
+                    type="text"
+                    id="c-name"
+                    name="name"
+                    placeholder="e.g. Amina Uwase"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="c-email">Email Address</label>
+                  <input
+                    type="email"
+                    id="c-email"
+                    name="email"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="c-message">Project Details</label>
+                  <textarea
+                    id="c-message"
+                    name="message"
+                    rows="5"
+                    placeholder="Tell us about your space and what you're looking for…"
+                    required
+                  ></textarea>
+                </div>
+                <button type="submit" class="btn btn--primary btn--full">
+                  Send Message
+                </button>
+                <p class="form-success" id="form-success" hidden>
+                  ✓ Message sent! We'll get back to you within 24 hours.
+                </p>
+              </form>
+            </div>
+
+            <div class="contact-info">
+              <h2>Contact Info</h2>
+              <div class="contact-info__item">
+                <span class="contact-info__icon"
+                  ><i class="fa-solid fa-location-dot"></i
+                ></span>
+                <div>
+                  <strong>Location</strong>
+                  <p>Kigali, Rwanda</p>
+                </div>
+              </div>
+              <div class="contact-info__item">
+                <span class="contact-info__icon"
+                  ><i class="fa-regular fa-envelope"></i
+                ></span>
+                <div>
+                  <strong>Email</strong>
+                  <p>
+                    <a href="mailto:mouns.rw@gmail.com">mouns.rw@gmail.com</a>
+                  </p>
+                </div>
+              </div>
+              <div class="contact-info__item">
+                <span class="contact-info__icon"
+                  ><i class="fa-regular fa-clock"></i
+                ></span>
+                <div>
+                  <strong>Hours</strong>
+                  <p>Mon – Fri, 8am – 6pm CAT</p>
+                </div>
+              </div>
+              <div class="whatsapp-card">
+                <p class="whatsapp-card__label">What happens next?</p>
+                <h3>Chat with us on WhatsApp</h3>
+                <p>
+                  We respond fastest here — usually within minutes during
+                  business hours.
+                </p>
+                <a
+                  href="https://wa.me/23055198497?text=Hello%20MOUN%2C%20I%20have%20a%20question!"
+                  class="btn btn--whatsapp"
+                  target="_blank"
+                  rel="noopener"
+                  >Open WhatsApp</a
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============================================================
+       FOOTER
+    ============================================================ -->
+      <footer class="site-footer">
+        <div class="container site-footer__inner">
+          <div class="footer-brand">
+            <span class="logo-text"
+              >moun<span class="logo-accent">.</span></span
+            >
+            <p>Interior design & home décor.<br />Kigali, Rwanda.</p>
+          </div>
+          <div class="footer-nav">
+            <h4>Navigate</h4>
+            <ul>
+              <li>
+                <a href="javascript:void(0)" onclick="showPage('home')">Home</a>
+              </li>
+              <li>
+                <a href="javascript:void(0)" onclick="showPage('shop')">Shop</a>
+              </li>
+              <li>
+                <a href="javascript:void(0)" onclick="showPage('portfolio')"
+                  >Portfolio</a
+                >
+              </li>
+              <li>
+                <a href="javascript:void(0)" onclick="showPage('about')"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a href="javascript:void(0)" onclick="showPage('contact')"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-social">
+            <h4>Follow Us</h4>
+            <ul>
+              <li>
+                <a
+                  href="https://www.instagram.com/moun.rw?igsh=MW5obGRtaDZpbnRuMw=="
+                  target="_blank"
+                  rel="noopener"
+                  >Instagram</a
+                >
+              </li>
+              <li><a href="#" target="_blank" rel="noopener">TikTok</a></li>
+              <li><a href="#" target="_blank" rel="noopener">Facebook</a></li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h4>Contact</h4>
+            <p><a href="mailto:mouns.rw@gmail.com">mouns.rw@gmail.com</a></p>
+            <a
+              href="https://wa.me/23055198497"
+              class="btn btn--whatsapp btn--sm"
+              target="_blank"
+              rel="noopener"
+              >WhatsApp Us</a
+            >
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2026 MOUN. Interior Design & Home Décor, Kigali.</p>
+        </div>
+      </footer>
+
+      <script src="script.js"></script>
+    </div>
+    <!-- /rr-site -->
+  </body>
+</html>
