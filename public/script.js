@@ -144,7 +144,7 @@ let PRODUCTS = [
   },
 ];
 
-const WA_NUMBER = '23055198497';
+let WA_NUMBER = '23055198497';
 const MAX_QTY = 2;
 
 /* ----------------------------------------------------------------
@@ -1583,3 +1583,93 @@ async function loadLiveProducts() {
 }
 
 loadLiveProducts();
+
+
+/* ================================================================
+   WEBSITE CONTENT FROM THE ADMIN DASHBOARD
+   WhatsApp number, replaced photos and portfolio projects. If the
+   backend can't be reached, the page keeps what is written in index.html.
+   ================================================================ */
+function applyWhatsAppNumber(number) {
+  if (!number) return;
+  WA_NUMBER = number;
+  document.querySelectorAll('a[href*="wa.me/"]').forEach((a) => {
+    a.href = a.href.replace(/wa\.me\/\d+/, 'wa.me/' + number);
+  });
+  if (typeof currentProduct !== 'undefined' && currentProduct) updateProductLinks(currentProduct.name);
+}
+
+function applySitePhotos(photos) {
+  const paths = Object.keys(photos || {});
+  if (!paths.length) return;
+  const swap = (path) => {
+    const decoded = decodeURI(path);
+    return Object.prototype.hasOwnProperty.call(photos, decoded) ? resolveProductImage(photos[decoded]) : null;
+  };
+  document.querySelectorAll('img[src]').forEach((img) => {
+    const next = swap(img.getAttribute('src'));
+    if (next) img.src = next;
+  });
+  document.querySelectorAll('[style*="background-image"]').forEach((el) => {
+    const m = el.style.backgroundImage.match(/url\(["']?([^"')]+)["']?\)/);
+    const next = m && swap(m[1]);
+    if (next) el.style.backgroundImage = `url("${next}")`;
+  });
+}
+
+function renderPortfolio(items) {
+  const grid = document.getElementById('pf-grid');
+  if (!grid || !Array.isArray(items) || items.length === 0) return;
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  grid.innerHTML = items.map((it) => {
+    const src = resolveProductImage(it.media);
+    const media = it.mediaType === 'video'
+      ? `<div class="pf-card__img" style="position:relative;overflow:hidden;">
+           <video autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;">
+             <source src="${esc(src)}" type="video/mp4" />
+           </video>`
+      : `<div class="pf-card__img" style="background-image: url(&quot;${esc(src)}&quot;);">`;
+    return `<article class="pf-card" data-category="${esc(it.category)}" onclick="openPfModal(this)">
+        ${media}
+          <div class="pf-card__overlay"><span class="pf-card__zoom">&#128269;</span></div>
+          <span class="pf-card__badge">${esc(it.categoryLabel)}</span>
+        </div>
+        <div class="pf-card__body">
+          <h3 class="pf-card__title">${esc(it.title)}</h3>
+          <p class="pf-card__meta">${esc(it.meta)}</p>
+        </div>
+      </article>`;
+  }).join('');
+
+  /* Keep the filter buttons' counts and the active filter in step */
+  document.querySelectorAll('.pf-filter').forEach((btn) => {
+    const f = btn.dataset.filter;
+    const n = f === 'all' ? items.length : items.filter((it) => it.category === f).length;
+    btn.textContent = btn.textContent.replace(/\(\d+\)/, `(${n})`);
+  });
+  const active = document.querySelector('.pf-filter.active');
+  if (active) active.click();
+  else {
+    const el = document.getElementById('pf-showing');
+    if (el) el.textContent = `Showing ${items.length} of ${items.length}`;
+  }
+}
+
+async function loadSiteContent() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const res = await fetch(`${API_BASE}/api/site`, { signal: controller.signal });
+    if (!res.ok) return;
+    const data = await res.json();
+    applyWhatsAppNumber(data.settings && data.settings.whatsapp_number);
+    applySitePhotos(data.photos);
+    renderPortfolio(data.portfolio);
+  } catch (err) {
+    /* Keep the content written in index.html */
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+loadSiteContent();
