@@ -981,6 +981,222 @@ def get_product_image(image_id):
     return resp
 
 
+# ── Website content: settings, site photos, portfolio ─────────
+
+PORTFOLIO_CATEGORIES = {
+    'living':  'Living Room',
+    'bedroom': 'Bedroom',
+    'office':  'Home Office',
+    'dining':  'Dining Room',
+    '3d':      '3D Visualization',
+}
+
+# Photos on the website that the dashboard can replace (portfolio and product
+# photos are managed in their own tabs). Videos are left out: they are too large
+# to upload through Vercel.
+SITE_PHOTOS = [
+    {'path': 'images/digitalcraft.jpeg',  'label': 'Home page · What We Offer · Home Décor'},
+    {'path': 'images/living room.JPG',    'label': 'Home page · What We Offer · Living Room Design'},
+    {'path': 'images/bedroom.JPG',        'label': 'Home page · What We Offer · Bedroom Design'},
+    {'path': 'images/mouninterior.PNG',   'label': 'Home page · studio photo below Featured Products'},
+    {'path': 'images/homedecor1.jpg',     'label': 'About page · header background'},
+    {'path': 'images/our story.JPG',      'label': 'About page · Our Story photo'},
+]
+SITE_PHOTO_PATHS = {p['path'] for p in SITE_PHOTOS}
+
+
+def clean_whatsapp_number(raw: str):
+    """Digits only, with country code. Returns (number, error)."""
+    digits = ''.join(ch for ch in str(raw or '') if ch.isdigit())
+    if digits.startswith('00'):
+        digits = digits[2:]
+    if digits.startswith('0') and len(digits) == 10:      # local Rwandan format 07xx xxx xxx
+        digits = '250' + digits[1:]
+    if not 8 <= len(digits) <= 15:
+        return None, 'Enter the WhatsApp number with its country code, e.g. +250 788 123 456.'
+    return digits, None
+
+
+def portfolio_to_json(row: dict) -> dict:
+    return {
+        'id':            row['id'],
+        'title':         row['title'],
+        'category':      row['category'],
+        'categoryLabel': row['category_label'],
+        'meta':          row['meta'] or '',
+        'media':         row['media'] or '',
+        'mediaType':     row['media_type'],
+        'visible':       row['visible'],
+        'sortOrder':     row['sort_order'],
+    }
+
+
+def clean_portfolio(data: dict):
+    title = str(data.get('title') or '').strip()
+    if not title:
+        return None, 'Give the project a title.'
+    category = str(data.get('category') or '').strip()
+    if category not in PORTFOLIO_CATEGORIES:
+        return None, f'Category must be one of: {", ".join(PORTFOLIO_CATEGORIES.values())}.'
+    media = str(data.get('media') or '').strip()
+    if not media:
+        return None, 'Add a photo for the project.'
+    media_type = 'video' if str(data.get('mediaType')) == 'video' and media.lower().endswith(('.mp4', '.mov')) else 'image'
+    try:
+        sort_order = int(data.get('sortOrder') or 0)
+    except (TypeError, ValueError):
+        sort_order = 0
+    return {
+        'title':          title[:255],
+        'category':       category,
+        'category_label': PORTFOLIO_CATEGORIES[category],
+        'meta':           str(data.get('meta') or '').strip()[:255],
+        'media':          media,
+        'media_type':     media_type,
+        'visible':        bool(data.get('visible', True)),
+        'sort_order':     sort_order,
+    }, None
+
+
+def read_site_content(include_hidden: bool):
+    conn = get_connection(); cur = conn.cursor()
+    try:
+        cur.execute("SELECT key, value FROM site_settings")
+        settings = {r['key']: r['value'] for r in cur.fetchall()}
+        cur.execute("SELECT path, replacement FROM site_photos")
+        photos = {r['path']: r['replacement'] for r in cur.fetchall()}
+        cur.execute(
+            "SELECT * FROM portfolio_items " + ("" if include_hidden else "WHERE visible ") + "ORDER BY sort_order, id"
+        )
+        portfolio = [portfolio_to_json(r) for r in cur.fetchall()]
+    finally:
+        cur.close(); conn.close()
+    return settings, photos, portfolio
+
+
+@app.route('/api/site', methods=['GET'])
+def public_site_content():
+    settings, photos, portfolio = read_site_content(include_hidden=False)
+    resp = jsonify({
+        'settings':  {'whatsapp_number': settings.get('whatsapp_number', '')},
+        'photos':    photos,
+        'portfolio': portfolio,
+    })
+    resp.headers['Cache-Control'] = 'public, max-age=60'
+    return resp, 200
+
+
+@app.route('/api/admin/site', methods=['GET'])
+@require_admin_session
+def admin_site_content():
+    settings, photos, portfolio = read_site_content(include_hidden=True)
+    return jsonify({
+        'settings':   {'whatsapp_number': settings.get('whatsapp_number', '')},
+        'photos':     [dict(p, replacement=photos.get(p['path'], '')) for p in SITE_PHOTOS],
+        'portfolio':  portfolio,
+        'categories': PORTFOLIO_CATEGORIES,
+    }), 200
+
+
+@app.route('/api/admin/settings', methods=['PUT'])
+@require_admin_session
+def update_site_settings():
+    data = request.get_json() or {}
+    number, err = clean_whatsapp_number(data.get('whatsapp_number'))
+    if err:
+        return jsonify({'error': err}), 400
+    conn = get_connection(); cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO site_settings (key, value) VALUES ('whatsapp_number', %s)
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+        """, (number,))
+        conn.commit()
+    finally:
+        cur.close(); conn.close()
+    return jsonify({'success': True, 'whatsapp_number': number}), 200
+
+
+@app.route('/api/admin/site-photos', methods=['PUT'])
+@require_admin_session
+def update_site_photo():
+    data = request.get_json() or {}
+    path = str(data.get('path') or '')
+    if path not in SITE_PHOTO_PATHS:
+        return jsonify({'error': 'That photo cannot be replaced from the dashboard.'}), 400
+    replacement = str(data.get('replacement') or '').strip()
+    conn = get_connection(); cur = conn.cursor()
+    try:
+        if replacement:
+            cur.execute("""
+                INSERT INTO site_photos (path, replacement) VALUES (%s, %s)
+                ON CONFLICT (path) DO UPDATE SET replacement = EXCLUDED.replacement, updated_at = NOW()
+            """, (path, replacement))
+        else:
+            cur.execute("DELETE FROM site_photos WHERE path = %s", (path,))
+        conn.commit()
+    finally:
+        cur.close(); conn.close()
+    return jsonify({'success': True, 'path': path, 'replacement': replacement}), 200
+
+
+@app.route('/api/admin/portfolio', methods=['POST'])
+@require_admin_session
+def create_portfolio_item():
+    fields, err = clean_portfolio(request.get_json() or {})
+    if err:
+        return jsonify({'error': err}), 400
+    conn = get_connection(); cur = conn.cursor()
+    try:
+        if not fields['sort_order']:
+            cur.execute("SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM portfolio_items")
+            fields['sort_order'] = cur.fetchone()['n']
+        cols = ', '.join(fields)
+        vals = ', '.join(['%s'] * len(fields))
+        cur.execute(f"INSERT INTO portfolio_items ({cols}) VALUES ({vals}) RETURNING *", list(fields.values()))
+        row = cur.fetchone()
+        conn.commit()
+    finally:
+        cur.close(); conn.close()
+    return jsonify({'success': True, 'item': portfolio_to_json(row)}), 201
+
+
+@app.route('/api/admin/portfolio/<int:item_id>', methods=['PUT'])
+@require_admin_session
+def update_portfolio_item(item_id):
+    fields, err = clean_portfolio(request.get_json() or {})
+    if err:
+        return jsonify({'error': err}), 400
+    if not fields['sort_order']:
+        del fields['sort_order']
+    sets = ', '.join(f"{k} = %s" for k in fields) + ', updated_at = NOW()'
+    conn = get_connection(); cur = conn.cursor()
+    try:
+        cur.execute(f"UPDATE portfolio_items SET {sets} WHERE id = %s RETURNING *", list(fields.values()) + [item_id])
+        row = cur.fetchone()
+        conn.commit()
+    finally:
+        cur.close(); conn.close()
+    if not row:
+        return jsonify({'error': 'Project not found'}), 404
+    return jsonify({'success': True, 'item': portfolio_to_json(row)}), 200
+
+
+@app.route('/api/admin/portfolio/<int:item_id>', methods=['DELETE'])
+@require_admin_session
+def delete_portfolio_item(item_id):
+    conn = get_connection(); cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM portfolio_items WHERE id = %s RETURNING id", (item_id,))
+        row = cur.fetchone()
+        conn.commit()
+    finally:
+        cur.close(); conn.close()
+    if not row:
+        return jsonify({'error': 'Project not found'}), 404
+    return jsonify({'success': True, 'id': item_id}), 200
+
+
 @app.route('/')
 def serve_index():
     """Vercel serves public/index.html directly; this is a fallback."""
@@ -1171,6 +1387,25 @@ ADMIN_HTML = r"""
     .pr-msg--ok { background: #EAF3DE; color: #2E7D32; }
     .pr-msg--err { background: #FDECEA; color: #B71C1C; }
     .toolbar input[type=search] { padding: 0.45rem 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.88rem; min-width: 200px; }
+    /* Website tab */
+    .ws-wrap { padding: 1rem 2rem 2.5rem; display: flex; flex-direction: column; gap: 1.75rem; }
+    .ws-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .ws-section h3 { font-size: 1rem; color: #1E150A; }
+    .ws-section > p.pr-hint { margin-top: -6px; }
+    .ws-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .ws-row input[type=text] { border: 1px solid #E0D4C0; border-radius: 8px; padding: 9px 11px; font-size: 0.95rem; min-width: 220px; font-family: inherit; }
+    .ws-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .ws-photo { border: 1px solid #E8DFD1; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; background: #FBF8F3; }
+    .ws-photo img, .ws-photo .pr-thumb-ph { width: 100%; height: 140px; object-fit: cover; display: block; border-radius: 0; }
+    .ws-photo-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .ws-photo-label { font-size: 0.82rem; color: #1E150A; font-weight: 600; line-height: 1.35; }
+    .ws-photo-actions { display: flex; gap: 12px; align-items: center; margin-top: auto; flex-wrap: wrap; }
+    .ws-tag { font-size: 0.7rem; font-weight: 700; color: #155724; background: #D4EDDA; border-radius: 999px; padding: 1px 8px; align-self: flex-start; }
+    .ws-pf { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 16px; align-items: start; }
+    .ws-pf-rows { display: flex; flex-direction: column; gap: 2px; }
+    .ws-pf-editor { background: #FBF8F3; border: 1px solid #E8DFD1; border-radius: 8px; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .ws-thumb-video { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; display: block; background: #EFE6D8; }
+    @media (max-width: 900px) { .ws-pf { grid-template-columns: minmax(0,1fr); } .ws-wrap { padding: 1rem; } }
     @media (max-width: 900px) {
       .pr-work { grid-template-columns: minmax(0,1fr); }
       .pr-editor { border-left: 0; border-top: 1px solid #E8DFD1; }
@@ -1233,6 +1468,7 @@ ADMIN_HTML = r"""
     <button class="tab-btn active" id="tab-orders-btn" onclick="switchTab('orders')">📦 Orders</button>
     <button class="tab-btn" id="tab-quotations-btn" onclick="switchTab('quotations')">📋 Quotation Requests <span id="q-new-badge" style="display:none;background:#C9A97A;color:#fff;border-radius:10px;font-size:0.7rem;padding:1px 7px;margin-left:4px;"></span></button>
     <button class="tab-btn" id="tab-products-btn" onclick="switchTab('products')">🛍️ Products</button>
+    <button class="tab-btn" id="tab-website-btn" onclick="switchTab('website')">🖼️ Website</button>
   </div>
 
   <!-- ORDERS TAB -->
@@ -1333,6 +1569,42 @@ ADMIN_HTML = r"""
       <div class="pr-editor" id="pr-editor"><p class="pr-empty">Pick a product on the left to edit it, or add a new one.</p></div>
     </div>
   </div>
+
+  <!-- WEBSITE TAB -->
+  <div class="tab-panel" id="tab-website">
+    <div class="ws-wrap">
+      <div id="ws-loading" style="text-align:center;padding:1rem;color:#888;" hidden>Loading website content...</div>
+
+      <section class="ws-section">
+        <h3>WhatsApp number</h3>
+        <p class="pr-hint">Every WhatsApp button on the website opens a chat with this number. Include the country code.</p>
+        <div class="ws-row">
+          <input type="text" id="ws-wa" inputmode="tel" placeholder="+250 788 123 456" aria-label="WhatsApp number">
+          <button type="button" class="pr-btn" id="ws-wa-save">Save number</button>
+        </div>
+        <div id="ws-wa-msg" class="pr-msg" hidden></div>
+      </section>
+
+      <section class="ws-section">
+        <h3>Website photos</h3>
+        <p class="pr-hint">Replace any of these photos. The change shows on the website within a minute. Product and portfolio photos are changed in their own sections.</p>
+        <div id="ws-photos-msg" class="pr-msg" hidden></div>
+        <div class="ws-photos" id="ws-photos"></div>
+      </section>
+
+      <section class="ws-section">
+        <div class="ws-row" style="justify-content:space-between">
+          <h3>Portfolio</h3>
+          <button type="button" class="pr-btn" id="ws-add-btn">+ Add project</button>
+        </div>
+        <p class="pr-hint">Projects shown on the Portfolio page, in this order. Lower position numbers come first.</p>
+        <div class="ws-pf">
+          <div class="pr-rows ws-pf-rows" id="ws-pf-rows"></div>
+          <div class="ws-pf-editor" id="ws-pf-editor"><p class="pr-empty">Pick a project to edit it, or add a new one.</p></div>
+        </div>
+      </section>
+    </div>
+  </div>
 </div>
 
 <!-- Modal -->
@@ -1430,19 +1702,8 @@ ADMIN_HTML = r"""
   }
 
   function logout() {
-    SESSION_TOKEN = ''; TEMP_TOKEN = ''; allOrders = []; allQuotations = [];
-    allProducts = []; prSelected = null; prDraft = null; prDirty = false;
-    document.getElementById('pr-rows').innerHTML = '';
-    document.getElementById('pr-editor').innerHTML = '<p class="pr-empty">Pick a product on the left to edit it, or add a new one.</p>';
-    document.getElementById('dashboard').style.display    = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('pw-input').value  = '';
-    document.getElementById('otp-input').value = '';
-    document.getElementById('step-1').style.display = 'block';
-    document.getElementById('step-2').style.display = 'none';
-    document.getElementById('dot-1').classList.add('active');
-    document.getElementById('dot-1').classList.remove('done');
-    document.getElementById('dot-2').classList.remove('active');
+    SESSION_TOKEN = ''; TEMP_TOKEN = '';
+    window.location.href = '/';
   }
 
   function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
@@ -1587,6 +1848,7 @@ ADMIN_HTML = r"""
     document.getElementById('tab-' + tab).classList.add('active');
     if (tab === 'quotations' && allQuotations.length === 0) loadQuotations();
     if (tab === 'products' && allProducts.length === 0) loadProducts();
+    if (tab === 'website' && !wsLoaded) loadWebsite();
   }
 
   /* ── Quotations ──────────────────────────────────────────── */
@@ -1710,7 +1972,7 @@ ADMIN_HTML = r"""
   let allProducts  = [];
   let prCategories = {};
   let prBadges     = [];
-  let prSiteUrl    = '';
+  let prSiteUrl    = API_BASE;
   let prSelected   = null;
   let prDraft      = null;
   let prDirty      = false;
@@ -2006,6 +2268,223 @@ ADMIN_HTML = r"""
   document.getElementById('pr-search').addEventListener('input', renderProductRows);
   document.getElementById('pr-filter-cat').addEventListener('change', renderProductRows);
   document.getElementById('pr-add-btn').addEventListener('click', newProduct);
+  /* ── Website: WhatsApp, site photos, portfolio ───────────── */
+  let wsLoaded = false;
+  let wsPhotos = [];
+  let wsPortfolio = [];
+  let wsCategories = {};
+  let wsSelected = null;
+  let wsDraft = null;
+  let wsConfirmDel = false;
+
+  function wsMsg(id, text, kind) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'pr-msg pr-msg--' + kind;
+    el.textContent = text;
+    el.hidden = false;
+  }
+
+  async function wsUpload(file, msgId) {
+    if (!file) return null;
+    wsMsg(msgId, 'Uploading photo…', 'ok');
+    file = await prShrink(file);
+    if (file.size > 4 * 1024 * 1024) { wsMsg(msgId, 'That photo is too large even after resizing. Choose one under 4 MB.', 'err'); return null; }
+    const fd = new FormData();
+    fd.append('image', file);
+    try {
+      const data = await prFetch('/api/admin/images', { method: 'POST', body: fd });
+      return data.url;
+    } catch (err) { wsMsg(msgId, err.message, 'err'); return null; }
+  }
+
+  async function loadWebsite() {
+    const loading = document.getElementById('ws-loading');
+    loading.hidden = false;
+    try {
+      const data = await prFetch('/api/admin/site');
+      wsPhotos = data.photos;
+      wsPortfolio = data.portfolio;
+      wsCategories = data.categories;
+      document.getElementById('ws-wa').value = data.settings.whatsapp_number ? '+' + data.settings.whatsapp_number : '';
+      renderWsPhotos();
+      renderWsPortfolio();
+      if (!wsDraft) renderWsEditor();
+      wsLoaded = true;
+    } catch (err) {
+      wsMsg('ws-wa-msg', err.message, 'err');
+    } finally { loading.hidden = true; }
+  }
+
+  async function saveWhatsApp() {
+    const btn = document.getElementById('ws-wa-save');
+    btn.disabled = true;
+    try {
+      const data = await prFetch('/api/admin/settings', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp_number: document.getElementById('ws-wa').value }),
+      });
+      document.getElementById('ws-wa').value = '+' + data.whatsapp_number;
+      wsMsg('ws-wa-msg', `Saved. Every WhatsApp button on the website now goes to +${data.whatsapp_number}.`, 'ok');
+    } catch (err) { wsMsg('ws-wa-msg', err.message, 'err'); }
+    finally { btn.disabled = false; }
+  }
+
+  function renderWsPhotos() {
+    const grid = document.getElementById('ws-photos');
+    grid.innerHTML = wsPhotos.map((p, i) => `
+      <div class="ws-photo">
+        ${prThumb(p.replacement || p.path)}
+        <div class="ws-photo-body">
+          <span class="ws-photo-label">${esc(p.label)}</span>
+          ${p.replacement ? '<span class="ws-tag">Replaced</span>' : ''}
+          <div class="ws-photo-actions">
+            <label class="pr-upload">Replace photo<input type="file" data-ws-photo="${i}" accept="image/jpeg,image/png,image/webp"></label>
+            ${p.replacement ? `<button type="button" class="pr-del" data-ws-reset="${i}" style="color:#7A6A52">Restore original</button>` : ''}
+          </div>
+        </div>
+      </div>`).join('');
+    grid.querySelectorAll('[data-ws-photo]').forEach(el => el.addEventListener('change', async () => {
+      const p = wsPhotos[+el.dataset.wsPhoto];
+      const url = await wsUpload(el.files[0], 'ws-photos-msg');
+      if (url) await setSitePhoto(p, url, `Replaced. The new photo is live: ${p.label}.`);
+    }));
+    grid.querySelectorAll('[data-ws-reset]').forEach(el => el.addEventListener('click', () => {
+      const p = wsPhotos[+el.dataset.wsReset];
+      setSitePhoto(p, '', `Restored the original photo: ${p.label}.`);
+    }));
+  }
+
+  async function setSitePhoto(p, replacement, okText) {
+    try {
+      await prFetch('/api/admin/site-photos', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: p.path, replacement }),
+      });
+      p.replacement = replacement;
+      renderWsPhotos();
+      wsMsg('ws-photos-msg', okText, 'ok');
+    } catch (err) { wsMsg('ws-photos-msg', err.message, 'err'); }
+  }
+
+  function wsThumb(item) {
+    if (item.mediaType === 'video') {
+      const src = prImg(item.media);
+      return src ? `<video class="ws-thumb-video" src="${esc(src)}" muted playsinline preload="metadata"></video>` : '<span class="pr-thumb-ph"></span>';
+    }
+    return prThumb(item.media);
+  }
+
+  function renderWsPortfolio() {
+    const rows = document.getElementById('ws-pf-rows');
+    if (!wsPortfolio.length) { rows.innerHTML = '<p class="pr-empty" style="padding:1rem">No projects yet. Use “+ Add project”.</p>'; return; }
+    rows.innerHTML = wsPortfolio.map(it => `
+      <button type="button" class="pr-row ${it.id === wsSelected ? 'selected' : ''}" data-id="${it.id}">
+        ${wsThumb(it)}
+        <span><span class="pr-name">${esc(it.title)}</span><br>
+          <span class="pr-meta">${esc(it.categoryLabel)}${it.meta ? ' · ' + esc(it.meta) : ''}</span></span>
+        <span class="pr-price">#${it.sortOrder}</span>
+        <span class="pill ${it.visible ? 'pill--on' : 'pill--off'}">${it.visible ? 'On site' : 'Hidden'}</span>
+      </button>`).join('');
+    rows.querySelectorAll('.pr-row').forEach(b => b.addEventListener('click', () => {
+      const it = wsPortfolio.find(x => x.id === +b.dataset.id);
+      wsSelected = it.id; wsDraft = JSON.parse(JSON.stringify(it)); wsConfirmDel = false;
+      renderWsPortfolio(); renderWsEditor();
+    }));
+  }
+
+  function newPortfolioItem() {
+    wsSelected = null; wsConfirmDel = false;
+    wsDraft = { id: null, title: '', category: Object.keys(wsCategories)[0] || 'living', meta: '', media: '', mediaType: 'image', visible: true, sortOrder: 0 };
+    renderWsPortfolio(); renderWsEditor();
+    document.getElementById('ws-title').focus();
+  }
+
+  function renderWsEditor(msg) {
+    const ed = document.getElementById('ws-pf-editor');
+    const p = wsDraft;
+    if (!p) { ed.innerHTML = '<p class="pr-empty">Pick a project to edit it, or add a new one.</p>'; return; }
+    ed.innerHTML = `
+      <h3 style="font-size:1rem;color:#1E150A">${p.id ? 'Edit project' : 'New project'}</h3>
+      <div id="ws-pf-msg" class="pr-msg" hidden></div>
+      <div class="pr-field"><label for="ws-title">Project title</label><input type="text" id="ws-title" maxlength="255" value="${esc(p.title)}" placeholder="e.g. Bright Family Living Room"></div>
+      <div class="pr-two">
+        <div class="pr-field"><label for="ws-cat">Category</label>
+          <select id="ws-cat">${Object.entries(wsCategories).map(([k, l]) => `<option value="${k}" ${k === p.category ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
+        <div class="pr-field"><label for="ws-order">Position</label><input type="number" id="ws-order" min="1" step="1" value="${p.sortOrder || ''}" placeholder="Last"></div>
+      </div>
+      <div class="pr-field"><label for="ws-meta">Location and year</label><input type="text" id="ws-meta" maxlength="255" value="${esc(p.meta)}" placeholder="e.g. Remera, Kigali · 2026"></div>
+      <div class="pr-group"><span class="pr-group-label">Photo</span>
+        <div class="pr-photo">${wsThumb(p)}
+          <div><label class="pr-upload">${p.media ? 'Change photo' : 'Upload a photo'}<input type="file" id="ws-file" accept="image/jpeg,image/png,image/webp"></label>
+          <div class="pr-hint">${p.mediaType === 'video' ? 'This project shows a video. Uploading a photo replaces it.' : 'JPG, PNG or WEBP. Large photos are resized automatically.'}</div></div></div></div>
+      <label class="pr-stock" style="font-size:0.88rem;color:#1E150A"><input type="checkbox" id="ws-visible" ${p.visible ? 'checked' : ''}>Show this project on the website</label>
+      ${wsConfirmDel ? `<div class="pr-confirm">Delete “${esc(p.title)}” from the portfolio? This can’t be undone.
+        <button type="button" class="pr-btn pr-btn--danger" id="ws-del-yes">Delete</button>
+        <button type="button" class="pr-btn pr-btn--ghost" id="ws-del-no">Keep it</button></div>` : ''}
+      <div class="pr-foot">
+        ${p.id ? '<button type="button" class="pr-del" id="ws-del">Delete project</button>' : ''}
+        <span class="spacer"></span>
+        <button type="button" class="pr-btn" id="ws-save">${p.id ? 'Save changes' : 'Add to portfolio'}</button>
+      </div>`;
+    if (msg) wsMsg('ws-pf-msg', msg.text, msg.kind);
+    const bind = (id, fn) => { const el = document.getElementById(id); el.addEventListener('input', () => fn(el)); el.addEventListener('change', () => fn(el)); };
+    bind('ws-title', el => { p.title = el.value; });
+    bind('ws-cat',   el => { p.category = el.value; });
+    bind('ws-meta',  el => { p.meta = el.value; });
+    bind('ws-order', el => { p.sortOrder = el.value === '' ? 0 : +el.value; });
+    document.getElementById('ws-visible').addEventListener('change', e => { p.visible = e.target.checked; });
+    document.getElementById('ws-file').addEventListener('change', async e => {
+      const url = await wsUpload(e.target.files[0], 'ws-pf-msg');
+      if (url) { p.media = url; p.mediaType = 'image'; renderWsEditor({ text: 'Photo uploaded. Save to publish it.', kind: 'ok' }); }
+    });
+    document.getElementById('ws-save').addEventListener('click', savePortfolioItem);
+    const del = document.getElementById('ws-del');
+    if (del) del.addEventListener('click', () => { wsConfirmDel = true; renderWsEditor(); });
+    const yes = document.getElementById('ws-del-yes'), no = document.getElementById('ws-del-no');
+    if (yes) yes.addEventListener('click', deletePortfolioItem);
+    if (no) no.addEventListener('click', () => { wsConfirmDel = false; renderWsEditor(); });
+  }
+
+  async function savePortfolioItem() {
+    const p = wsDraft;
+    if (!p.title.trim()) { wsMsg('ws-pf-msg', 'Give the project a title before saving.', 'err'); return; }
+    if (!p.media) { wsMsg('ws-pf-msg', 'Upload a photo before saving.', 'err'); return; }
+    const isNew = !p.id;
+    const btn = document.getElementById('ws-save');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const body = JSON.stringify(p);
+      const data = isNew
+        ? await prFetch('/api/admin/portfolio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+        : await prFetch(`/api/admin/portfolio/${p.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
+      const saved = data.item;
+      const i = wsPortfolio.findIndex(x => x.id === saved.id);
+      if (i >= 0) wsPortfolio[i] = saved; else wsPortfolio.push(saved);
+      wsPortfolio.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+      wsSelected = saved.id; wsDraft = JSON.parse(JSON.stringify(saved));
+      renderWsPortfolio();
+      const where = saved.visible ? (isNew ? 'is now in the portfolio' : 'is updated on the website') : 'is saved but hidden from the website';
+      renderWsEditor({ text: `Saved. “${saved.title}” ${where}.`, kind: 'ok' });
+    } catch (err) {
+      wsMsg('ws-pf-msg', err.message, 'err');
+      btn.disabled = false; btn.textContent = isNew ? 'Add to portfolio' : 'Save changes';
+    }
+  }
+
+  async function deletePortfolioItem() {
+    const p = wsDraft;
+    try {
+      await prFetch(`/api/admin/portfolio/${p.id}`, { method: 'DELETE' });
+      wsPortfolio = wsPortfolio.filter(x => x.id !== p.id);
+      wsSelected = null; wsDraft = null; wsConfirmDel = false;
+      renderWsPortfolio(); renderWsEditor();
+      document.getElementById('ws-pf-editor').insertAdjacentHTML('afterbegin', `<div class="pr-msg pr-msg--ok">“${esc(p.title)}” was deleted.</div>`);
+    } catch (err) { wsMsg('ws-pf-msg', err.message, 'err'); }
+  }
+
+  document.getElementById('ws-wa-save').addEventListener('click', saveWhatsApp);
+  document.getElementById('ws-add-btn').addEventListener('click', newPortfolioItem);
 </script>
 </body>
 </html>
