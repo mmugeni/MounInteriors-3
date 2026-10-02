@@ -188,7 +188,40 @@ def init_db(retries: int = 3, delay: int = 2):
         );
     """)
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS site_settings (
+            key         VARCHAR(50)  PRIMARY KEY,
+            value       TEXT         NOT NULL,
+            updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+        );
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS site_photos (
+            path         TEXT         PRIMARY KEY,   -- original photo path in index.html
+            replacement  TEXT         NOT NULL,      -- uploaded photo shown instead
+            updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+        );
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS portfolio_items (
+            id              SERIAL PRIMARY KEY,
+            title           VARCHAR(255) NOT NULL,
+            category        VARCHAR(50)  NOT NULL,
+            category_label  VARCHAR(100) NOT NULL,
+            meta            VARCHAR(255) NOT NULL DEFAULT '',  -- e.g. "Remera, Kigali · 2025"
+            media           TEXT         NOT NULL DEFAULT '',
+            media_type      VARCHAR(10)  NOT NULL DEFAULT 'image',
+            visible         BOOLEAN      NOT NULL DEFAULT TRUE,
+            sort_order      INTEGER      NOT NULL DEFAULT 0,
+            created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+            updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+        );
+    """)
+
     seed_products(cur)
+    seed_portfolio(cur)
 
     conn.commit()
     cur.close()
@@ -220,3 +253,32 @@ def seed_products(cur):
             p.get('visible', True), p.get('sort_order', 0),
         ))
     print(f"Seeded {len(items)} products.")
+
+
+SEED_PORTFOLIO = [
+    ('Warm Living Room Transformation', 'living',  'Living Room',      'Kimironko, Kigali · 2024',  'images/warm living room.jpg', 'image'),
+    ('Master Bedroom Redesign',         'bedroom', 'Bedroom',          'Remera, Kigali · 2024',     'images/master bedroom.JPG',   'image'),
+    ('3D Studio Apartment Concept',     '3d',      '3D Visualization', 'Kimironko, Kigali · 2025',  'images/3d vis3.mp4',          'video'),
+    ('Productive Home Office Setup',    'office',  'Home Office',      'Gasabo, Kigali · 2025',     'images/productive.JPG',       'image'),
+    ('Earthy Minimalist Lounge',        'living',  'Living Room',      'Nyarugenge, Kigali · 2025', 'images/earthy minimalist.JPG', 'image'),
+    ('Dining Room Refresh',             'dining',  'Dining Room',      'Kicukiro, Kigali · 2025',   'images/dining room.JPG',      'image'),
+    ('Serene Guest Bedroom',            'bedroom', 'Bedroom',          'Remera, Kigali · 2025',     'images/guest bedroom.JPG',    'image'),
+    ('Open Plan Living Area',           'living',  'Living Room',      'Kibagabaga, Kigali · 2025', 'images/open plan.JPG',        'image'),
+    ('Creative Studio Corner',          'office',  'Home Office',      'Gasabo, Kigali · 2025',     'images/creative.JPG',         'image'),
+    ('Family Dining Space',             'dining',  'Dining Room',      'Nyarugenge, Kigali · 2025', 'images/family.JPG',           'image'),
+    ('Contemporary Living Room',        'living',  'Living Room',      'Kicukiro, Kigali · 2025',   'images/contemporary.JPG',     'image'),
+    ('Kids Bedroom Design',             'bedroom', 'Bedroom',          'Kimironko, Kigali · 2025',  'images/kids bedroom.JPG',     'image'),
+]
+
+
+def seed_portfolio(cur):
+    """Copy the original portfolio projects into the database the first time it is empty."""
+    cur.execute("SELECT COUNT(*) AS n FROM portfolio_items")
+    if cur.fetchone()['n'] > 0:
+        return
+    for i, (title, cat, label, meta, media, media_type) in enumerate(SEED_PORTFOLIO, start=1):
+        cur.execute("""
+            INSERT INTO portfolio_items (title, category, category_label, meta, media, media_type, sort_order)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (title, cat, label, meta, media, media_type, i))
+    print(f"Seeded {len(SEED_PORTFOLIO)} portfolio projects.")
